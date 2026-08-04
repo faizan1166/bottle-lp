@@ -540,4 +540,25 @@ document.addEventListener('DOMContentLoaded', () => {
       updateDCCarousel(dcCurrentIndex, false);
     }, 150);
   }
+
+  // --- Q&A ACCORDION FUNCTIONALITY ---
+  const qaItems = document.querySelectorAll('.qa-item');
+  qaItems.forEach(item => {
+    const questionRow = item.querySelector('.qa-question-row');
+    const answerRow = item.querySelector('.qa-answer-row');
+    
+    if (questionRow && answerRow) {
+      questionRow.addEventListener('click', () => {
+        const isOpen = item.classList.contains('active');
+        
+        if (isOpen) {
+          item.classList.remove('active');
+          answerRow.style.maxHeight = '0px';
+        } else {
+          item.classList.add('active');
+          answerRow.style.maxHeight = answerRow.scrollHeight + 'px';
+        }
+      });
+    }
+  });
 });
