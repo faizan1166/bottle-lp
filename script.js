@@ -5,28 +5,86 @@ document.addEventListener('DOMContentLoaded', () => {
   const dots = Array.from(document.querySelectorAll('.decor-dot'));
   
   if (track && slides.length > 0) {
-    let currentIndex = 0;
+    const originalSlides = [...slides]; // Keep original order
     let autoPlayTimer = null;
     let startX = 0;
     let isDragging = false;
+    let isTransitioning = false;
+    let direction = null; // 'forward' or 'back'
+    let isMobile = window.innerWidth < 768;
 
-    const updateCarousel = (index) => {
-      currentIndex = index;
-      if (currentIndex < 0) currentIndex = slides.length - 1;
-      if (currentIndex >= slides.length) currentIndex = 0;
-      
-      track.style.transition = 'transform 0.4s ease-out';
-      track.style.transform = `translateX(-${currentIndex * 100}%)`;
-      
+    // Store original index on each slide
+    slides.forEach((slide, index) => {
+      slide.dataset.index = index;
+    });
+
+    const setTrackPosition = (percent, smooth = true) => {
+      if (window.innerWidth >= 768) {
+        track.style.transition = 'none';
+        track.style.transform = 'none';
+        return;
+      }
+      track.style.transition = smooth ? 'transform 0.4s ease-out' : 'none';
+      track.style.transform = `translateX(${percent}%)`;
+    };
+
+    const updateDots = () => {
+      if (window.innerWidth >= 768) return;
+      const activeSlide = track.children[1];
+      if (!activeSlide) return;
+      const logicalIndex = parseInt(activeSlide.dataset.index);
       dots.forEach((dot, i) => {
-        dot.classList.toggle('active', i === currentIndex);
+        dot.classList.toggle('active', i === logicalIndex);
       });
     };
 
+    const moveLastSlideToStart = () => {
+      const lastSlide = track.lastElementChild;
+      if (lastSlide) track.insertBefore(lastSlide, track.firstElementChild);
+    };
+
+    const moveFirstSlideToEnd = () => {
+      const firstSlide = track.firstElementChild;
+      if (firstSlide) track.appendChild(firstSlide);
+    };
+
+    const animateForward = () => {
+      if (isTransitioning || window.innerWidth >= 768) return;
+      direction = 'forward';
+      isTransitioning = true;
+      setTrackPosition(-200, true);
+    };
+
+    const animateBackward = () => {
+      if (isTransitioning || window.innerWidth >= 768) return;
+      direction = 'back';
+      isTransitioning = true;
+      setTrackPosition(0, true);
+    };
+
+    track.addEventListener('transitionend', () => {
+      if (window.innerWidth >= 768) {
+        isTransitioning = false;
+        direction = null;
+        return;
+      }
+      if (direction === 'forward') {
+        moveFirstSlideToEnd();
+        setTrackPosition(-100, false);
+      } else if (direction === 'back') {
+        moveLastSlideToStart();
+        setTrackPosition(-100, false);
+      }
+      isTransitioning = false;
+      direction = null;
+      updateDots();
+    });
+
     const startAutoPlay = () => {
       stopAutoPlay();
+      if (window.innerWidth >= 768) return;
       autoPlayTimer = setInterval(() => {
-        updateCarousel(currentIndex + 1);
+        animateForward();
       }, 4000);
     };
 
@@ -37,9 +95,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
+    const goToSlide = (targetIndex) => {
+      if (isTransitioning || window.innerWidth >= 768) return;
+      const currentSlides = Array.from(track.children);
+      const targetDOMIndex = currentSlides.findIndex(s => parseInt(s.dataset.index) === targetIndex);
+      
+      if (targetDOMIndex === 1) return; // Already visible
+      if (targetDOMIndex === 2) {
+        animateForward();
+      } else if (targetDOMIndex === 0) {
+        animateBackward();
+      }
+    };
+
     dots.forEach((dot, index) => {
       dot.addEventListener('click', () => {
-        updateCarousel(index);
+        goToSlide(index);
         startAutoPlay();
       });
     });
@@ -49,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const dragStart = (event) => {
+      if (isTransitioning || window.innerWidth >= 768) return;
       isDragging = true;
       startX = getPositionX(event);
       stopAutoPlay();
@@ -56,19 +128,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const dragMove = (event) => {
-      if (!isDragging) return;
+      if (!isDragging || window.innerWidth >= 768) return;
       const currentX = getPositionX(event);
       const diff = currentX - startX;
       
       const containerWidth = track.parentElement.offsetWidth;
       const translatePercent = (diff / containerWidth) * 100;
-      const targetTranslate = -currentIndex * 100 + translatePercent;
       
-      track.style.transform = `translateX(${targetTranslate}%)`;
+      // Base position is -100%
+      setTrackPosition(-100 + translatePercent, false);
     };
 
     const dragEnd = (event) => {
-      if (!isDragging) return;
+      if (!isDragging || window.innerWidth >= 768) return;
       isDragging = false;
       
       const endX = event.type.includes('touch') ? event.changedTouches[0].clientX : event.pageX;
@@ -77,16 +149,44 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (Math.abs(diff) > containerWidth * 0.15) {
         if (diff > 0) {
-          updateCarousel(currentIndex - 1);
+          animateBackward();
         } else {
-          updateCarousel(currentIndex + 1);
+          animateForward();
         }
       } else {
-        updateCarousel(currentIndex);
+        setTrackPosition(-100, true);
       }
       
       startAutoPlay();
     };
+
+    const setupSliderLayout = () => {
+      const currentlyMobile = window.innerWidth < 768;
+      if (currentlyMobile) {
+        if (!isMobile || track.children[1]?.dataset.index !== '0') {
+          // Restore original order S1, S2, S3 first
+          originalSlides.forEach(slide => track.appendChild(slide));
+          // Move S3 to start
+          moveLastSlideToStart();
+          setTrackPosition(-100, false);
+          updateDots();
+          startAutoPlay();
+        }
+        isMobile = true;
+      } else {
+        // Desktop state: restore S1, S2, S3 order
+        stopAutoPlay();
+        originalSlides.forEach(slide => track.appendChild(slide));
+        track.style.transition = 'none';
+        track.style.transform = 'none';
+        isMobile = false;
+      }
+    };
+
+    // Initialize layout
+    setupSliderLayout();
+
+    window.addEventListener('resize', setupSliderLayout);
 
     const wrapper = document.querySelector('.decor-carousel-wrapper');
     if (wrapper) {
@@ -100,45 +200,16 @@ document.addEventListener('DOMContentLoaded', () => {
       wrapper.addEventListener('mouseleave', () => {
         if (isDragging) {
           isDragging = false;
-          updateCarousel(currentIndex);
+          setTrackPosition(-100, true);
           startAutoPlay();
         }
       });
     }
-
-    startAutoPlay();
   }
 
   // --- RANDOM STARS GENERATOR ---
   const generateRandomStars = () => {
-    // 1. Handle Free Decor cards
-    const freeCards = document.querySelectorAll('.decor-card');
-    freeCards.forEach(card => {
-      // Remove any existing hardcoded sparkles first
-      const existingSparkles = card.querySelectorAll('.decor-card-sparkle');
-      existingSparkles.forEach(s => s.remove());
-      
-      // Determine number of stars (1 or 2)
-      const numStars = Math.floor(Math.random() * 2) + 1; // 1 or 2 stars
-      
-      for (let i = 0; i < numStars; i++) {
-        const star = document.createElement('span');
-        star.className = 'decor-card-sparkle';
-        
-        // Randomize placement: place on left or right margin to keep center clear for product img
-        const placeOnLeft = Math.random() > 0.5;
-        if (placeOnLeft) {
-          star.style.left = `${Math.floor(Math.random() * 12) + 6}%`;
-        } else {
-          star.style.right = `${Math.floor(Math.random() * 12) + 6}%`;
-        }
-        
-        // Vertical position: between 12% and 72% of the card height
-        star.style.top = `${Math.floor(Math.random() * 60) + 12}%`;
-        
-        card.appendChild(star);
-      }
-    });
+    // 1. Handle Free Decor cards (Fixed positions in HTML now, so disabled random generation)
 
     // 2. Handle Paid Decor cards: exactly one star and one heart per card
     const paidCards = document.querySelectorAll('.paid-card');
@@ -179,80 +250,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (pWrapper && pTrack && pSlides.length > 0) {
     const originalLength = pSlides.length;
-
-    // Clone first and last slides for infinite loop
     const firstClone = pSlides[0].cloneNode(true);
     const lastClone = pSlides[originalLength - 1].cloneNode(true);
 
     firstClone.classList.add('clone');
     lastClone.classList.add('clone');
 
-    // Prepend last clone and append first clone
-    pTrack.insertBefore(lastClone, pSlides[0]);
     pTrack.appendChild(firstClone);
+    pTrack.insertBefore(lastClone, pTrack.firstChild);
 
-    // Re-select slides to include clones
     const allSlides = Array.from(pTrack.querySelectorAll('.product-slider-slide'));
-
-    let pCurrentIndex = 1; // Start with index 1 (Bar Royal Green Apple) centered
+    let currentIndex = 1;
     let pAutoPlayTimer = null;
-    let pStartX = 0;
     let pIsDragging = false;
-    let pStartTranslate = 0;
+    let pStartX = 0;
     let pCurrentTranslate = 0;
+    let pStartTranslate = 0;
     let isTransitioning = false;
 
-    const getSlideWidthAndGap = () => {
-      const isDesktop = window.innerWidth >= 768;
-      const slideWidth = isDesktop ? 480 : pWrapper.offsetWidth;
-      const gap = isDesktop ? 24 : 0;
-      return { slideWidth, gap };
+    const getSlideWidth = () => allSlides[0].getBoundingClientRect().width;
+    const getSlideGap = () => {
+      const slideStyle = getComputedStyle(allSlides[0]);
+      return (parseFloat(slideStyle.marginLeft) || 0) + (parseFloat(slideStyle.marginRight) || 0);
     };
 
-    const updateSlidesWidth = () => {
-      const { slideWidth } = getSlideWidthAndGap();
-      allSlides.forEach(slide => {
-        slide.style.width = `${slideWidth}px`;
-      });
+    const getSlideOffset = (index) => {
+      const width = getSlideWidth();
+      const gap = getSlideGap();
+      const centerOffset = (pWrapper.offsetWidth - width) / 2;
+      return centerOffset - index * (width + gap);
     };
 
-    const getTranslateForIndex = (logicalIndex) => {
-      const { slideWidth, gap } = getSlideWidthAndGap();
-      const wrapperWidth = pWrapper.offsetWidth;
-      // DOM index is logicalIndex + 1 (because lastClone is at index 0)
-      const domIndex = logicalIndex + 1;
-      return (wrapperWidth / 2) - (slideWidth / 2) - domIndex * (slideWidth + gap);
+    const setSliderPosition = (translate, smooth = true) => {
+      pCurrentTranslate = translate;
+      pTrack.style.transition = smooth ? 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
+      pTrack.style.transform = `translateX(${translate}px)`;
     };
 
-    const updateSlider = (logicalIndex, smooth = true) => {
+    const moveToIndex = (index, smooth = true) => {
       if (isTransitioning && smooth) return;
       if (smooth) isTransitioning = true;
-
-      pCurrentIndex = logicalIndex;
-
-      const targetTranslate = getTranslateForIndex(pCurrentIndex);
-      pCurrentTranslate = targetTranslate;
-      
-      pTrack.style.transition = smooth ? 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
-      pTrack.style.transform = `translateX(${targetTranslate}px)`;
+      currentIndex = index;
+      setSliderPosition(getSlideOffset(currentIndex), smooth);
     };
 
     pTrack.addEventListener('transitionend', () => {
       isTransitioning = false;
-      
-      // Infinite loop jumps
-      if (pCurrentIndex === originalLength) {
-        updateSlider(0, false);
-      } else if (pCurrentIndex === -1) {
-        updateSlider(originalLength - 1, false);
+      if (currentIndex === allSlides.length - 1) {
+        currentIndex = 1;
+        setSliderPosition(getSlideOffset(currentIndex), false);
+      } else if (currentIndex === 0) {
+        currentIndex = originalLength;
+        setSliderPosition(getSlideOffset(currentIndex), false);
       }
     });
 
     const startAutoPlay = () => {
       stopAutoPlay();
-      pAutoPlayTimer = setInterval(() => {
-        updateSlider(pCurrentIndex + 1);
-      }, 5000);
+      pAutoPlayTimer = setInterval(() => moveToIndex(currentIndex + 1), 5000);
     };
 
     const stopAutoPlay = () => {
@@ -262,14 +317,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
-    const getDragPositionX = (event) => {
-      return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
-    };
+    const getPositionX = (event) => event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
 
     const dragStart = (event) => {
       if (isTransitioning) return;
       pIsDragging = true;
-      pStartX = getDragPositionX(event);
+      pStartX = getPositionX(event);
       pStartTranslate = pCurrentTranslate;
       stopAutoPlay();
       pTrack.style.transition = 'none';
@@ -277,60 +330,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dragMove = (event) => {
       if (!pIsDragging) return;
-      const currentX = getDragPositionX(event);
+      const currentX = getPositionX(event);
       const diff = currentX - pStartX;
-      pCurrentTranslate = pStartTranslate + diff;
-      pTrack.style.transform = `translateX(${pCurrentTranslate}px)`;
+      pTrack.style.transform = `translateX(${pStartTranslate + diff}px)`;
     };
 
     const dragEnd = (event) => {
       if (!pIsDragging) return;
       pIsDragging = false;
-      
-      const endX = event.type.includes('touch') ? event.changedTouches[0].clientX : event.pageX;
+      const endX = getPositionX(event);
       const diff = endX - pStartX;
-      const { slideWidth } = getSlideWidthAndGap();
-      const threshold = slideWidth * 0.15;
+      const threshold = getSlideWidth() * 0.15;
 
       if (Math.abs(diff) > threshold) {
         if (diff > 0) {
-          updateSlider(pCurrentIndex - 1);
+          moveToIndex(currentIndex - 1);
         } else {
-          updateSlider(pCurrentIndex + 1);
+          moveToIndex(currentIndex + 1);
         }
       } else {
-        updateSlider(pCurrentIndex);
+        moveToIndex(currentIndex);
       }
-      
+
       startAutoPlay();
     };
 
     pWrapper.addEventListener('touchstart', dragStart, { passive: true });
     pWrapper.addEventListener('touchmove', dragMove, { passive: true });
     pWrapper.addEventListener('touchend', dragEnd);
-    
     pWrapper.addEventListener('mousedown', dragStart);
     pWrapper.addEventListener('mousemove', dragMove);
     pWrapper.addEventListener('mouseup', dragEnd);
     pWrapper.addEventListener('mouseleave', () => {
       if (pIsDragging) {
         pIsDragging = false;
-        updateSlider(pCurrentIndex);
+        moveToIndex(currentIndex);
         startAutoPlay();
       }
     });
 
     window.addEventListener('resize', () => {
-      updateSlidesWidth();
-      updateSlider(pCurrentIndex, false);
+      moveToIndex(currentIndex, false);
     });
 
-    updateSlidesWidth();
-    setTimeout(() => {
-      updateSlidesWidth();
-      updateSlider(pCurrentIndex, false);
-    }, 50);
-    
+    moveToIndex(currentIndex, false);
     startAutoPlay();
   }
 
@@ -562,3 +605,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
