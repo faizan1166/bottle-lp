@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- PRODUCT SLIDER FUNCTIONALITY ---
   const pWrapper = document.querySelector('.product-slider-wrapper');
   const pTrack = document.querySelector('.product-slider-track');
-  let pSlides = Array.from(document.querySelectorAll('.product-slider-slide'));
+  const pSlides = Array.from(document.querySelectorAll('.product-slider-slide'));
 
   if (pWrapper && pTrack && pSlides.length > 0) {
     const originalLength = pSlides.length;
@@ -264,50 +264,50 @@ document.addEventListener('DOMContentLoaded', () => {
     let pAutoPlayTimer = null;
     let pIsDragging = false;
     let pStartX = 0;
-    let pCurrentTranslate = 0;
     let pStartTranslate = 0;
     let isTransitioning = false;
 
-    const getSlideWidth = () => allSlides[0].getBoundingClientRect().width;
-    const getSlideGap = () => {
-      const slideStyle = getComputedStyle(allSlides[0]);
-      return (parseFloat(slideStyle.marginLeft) || 0) + (parseFloat(slideStyle.marginRight) || 0);
-    };
-
-    const getSlideOffset = (index) => {
+    const getSlideWidth = () => allSlides[1].getBoundingClientRect().width;
+    const getTrackOffset = (index) => {
       const width = getSlideWidth();
-      const gap = getSlideGap();
-      const centerOffset = (pWrapper.offsetWidth - width) / 2;
-      return centerOffset - index * (width + gap);
+      const wrapperWidth = pWrapper.offsetWidth;
+      const centerOffset = (wrapperWidth - width) / 2;
+      return centerOffset - index * width;
     };
 
-    const setSliderPosition = (translate, smooth = true) => {
-      pCurrentTranslate = translate;
+    const updateSlideWidths = () => {
+      const width = window.innerWidth >= 768 ? 480 : pWrapper.offsetWidth;
+      allSlides.forEach(slide => {
+        slide.style.width = `${width}px`;
+      });
+    };
+
+    const setTranslate = (value, smooth = true) => {
       pTrack.style.transition = smooth ? 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
-      pTrack.style.transform = `translateX(${translate}px)`;
+      pTrack.style.transform = `translateX(${value}px)`;
     };
 
-    const moveToIndex = (index, smooth = true) => {
+    const goToIndex = (index, smooth = true) => {
       if (isTransitioning && smooth) return;
       if (smooth) isTransitioning = true;
       currentIndex = index;
-      setSliderPosition(getSlideOffset(currentIndex), smooth);
+      setTranslate(getTrackOffset(currentIndex), smooth);
     };
 
     pTrack.addEventListener('transitionend', () => {
-      isTransitioning = false;
-      if (currentIndex === allSlides.length - 1) {
-        currentIndex = 1;
-        setSliderPosition(getSlideOffset(currentIndex), false);
-      } else if (currentIndex === 0) {
+      if (currentIndex === 0) {
         currentIndex = originalLength;
-        setSliderPosition(getSlideOffset(currentIndex), false);
+        setTranslate(getTrackOffset(currentIndex), false);
+      } else if (currentIndex === originalLength + 1) {
+        currentIndex = 1;
+        setTranslate(getTrackOffset(currentIndex), false);
       }
+      isTransitioning = false;
     });
 
     const startAutoPlay = () => {
       stopAutoPlay();
-      pAutoPlayTimer = setInterval(() => moveToIndex(currentIndex + 1), 5000);
+      pAutoPlayTimer = setInterval(() => goToIndex(currentIndex + 1), 5000);
     };
 
     const stopAutoPlay = () => {
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isTransitioning) return;
       pIsDragging = true;
       pStartX = getPositionX(event);
-      pStartTranslate = pCurrentTranslate;
+      pStartTranslate = getTrackOffset(currentIndex);
       stopAutoPlay();
       pTrack.style.transition = 'none';
     };
@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!pIsDragging) return;
       const currentX = getPositionX(event);
       const diff = currentX - pStartX;
-      pTrack.style.transform = `translateX(${pStartTranslate + diff}px)`;
+      setTranslate(pStartTranslate + diff, false);
     };
 
     const dragEnd = (event) => {
@@ -344,14 +344,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (Math.abs(diff) > threshold) {
         if (diff > 0) {
-          moveToIndex(currentIndex - 1);
+          goToIndex(currentIndex - 1);
         } else {
-          moveToIndex(currentIndex + 1);
+          goToIndex(currentIndex + 1);
         }
       } else {
-        moveToIndex(currentIndex);
+        goToIndex(currentIndex);
       }
-
       startAutoPlay();
     };
 
@@ -364,16 +363,18 @@ document.addEventListener('DOMContentLoaded', () => {
     pWrapper.addEventListener('mouseleave', () => {
       if (pIsDragging) {
         pIsDragging = false;
-        moveToIndex(currentIndex);
+        goToIndex(currentIndex);
         startAutoPlay();
       }
     });
 
     window.addEventListener('resize', () => {
-      moveToIndex(currentIndex, false);
+      updateSlideWidths();
+      goToIndex(currentIndex, false);
     });
 
-    moveToIndex(currentIndex, false);
+    updateSlideWidths();
+    setTimeout(() => goToIndex(currentIndex, false), 50);
     startAutoPlay();
   }
 

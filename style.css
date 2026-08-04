@@ -742,6 +742,9 @@ body {
   margin: 0px 20px 0px 20px;
   box-shadow: 0px 0px 15px 0px #F1849336;
 }
+.product-card.no-1-badge {
+  padding-left: 90px;
+}
 
 .product-badge-no1 {
   position: absolute;
@@ -793,7 +796,7 @@ body {
 
 .product-title-text {
   font-family: var(--third-font);
-  font-size: clamp(16px, 3.8vw, 26px);
+  font-size: clamp(16px, 3.8vw, 23px);
   font-weight: 700;
   line-height: 1.45;
   text-align: center;
@@ -1090,8 +1093,8 @@ body {
 }
 
 .decor-sparkle-fixed {
-  width: clamp(20px, 4.5vw, 26px);
-  height: clamp(25px, 5.5vw, 32px);
+  width: clamp(20px, 4.5vw, 24px);
+  height: clamp(25px, 5.5vw, 30px);
   background-image: url('./assets/charcol-stars.svg');
 }
 
@@ -1117,21 +1120,24 @@ body {
 }
 
 .decor-double-heart-fixed .heart-1 {
+  width: clamp(10px, 3.5vw, 10px);
+  height: clamp(10px, 3.5vw, 10px);
   top: 0;
-  left: 0;
-  transform: rotate(-12deg);
+  left: 3px;
+  transform: rotate(16deg);
 }
 
 .decor-double-heart-fixed .heart-2 {
+
   top: 4px;
   left: 8px;
-  transform: rotate(18deg);
+  transform: rotate(50deg);
   opacity: 0.9;
 }
 
 /* Positioning classes inside .decor-card */
 .decor-card .top-right {
-  top: 15%;
+  top: 16%;
   right: 10%;
 }
 
@@ -1146,8 +1152,12 @@ body {
 }
 
 .decor-card .bottom-right {
-  bottom: 24%;
+  bottom: 16%;
   right: 10%;
+}
+.decor-card .top-right.王冠 {
+  top: 9%;
+  
 }
 
 .decor-card-title {
@@ -1168,7 +1178,7 @@ body {
 }
 
 .decor-card-img-container {
-  /* height: clamp(80px, 20vw, 110px); */
+  height: clamp(80px, 20vw, 110px);
   width: 100%;
   display: flex;
   justify-content: center;
@@ -2959,6 +2969,9 @@ body {
    .sp-only {
     display: block;
   }
+    .product-card.no-1-badge {
+  padding-left: 0px;
+}
 }
 
 @media (max-width: 750px) {
@@ -3213,6 +3226,7 @@ body {
 }
 
 @media (min-width: 768px) {
+
   .qa-item{
     padding: 0 30px;
   }
