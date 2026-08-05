@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const goToIndex = (index, smooth = true) => {
       if (isTransitioning && smooth) return;
-      if (smooth) isTransitioning = true;
+      isTransitioning = smooth;
       currentIndex = index;
       setTranslate(getTrackOffset(currentIndex), smooth);
     };
@@ -287,7 +287,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
-    const getPositionX = (event) => event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+    const getPositionX = (event) => {
+      if (event.type.includes('mouse')) return event.pageX;
+      return (event.touches && event.touches.length > 0) ? event.touches[0].clientX : event.changedTouches[0].clientX;
+    };
 
     const dragStart = (event) => {
       if (isTransitioning) return;

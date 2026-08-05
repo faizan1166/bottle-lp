@@ -766,7 +766,7 @@ bottom: 26%;
 }
 
 .product-bottle-img {
-  max-height: clamp(240px, 42vw, 340px);
+  max-height: clamp(300px, 42vw, 340px);
   width: auto;
   display: block;
 }
@@ -797,7 +797,7 @@ bottom: 26%;
 
 .product-title-text {
   font-family: var(--third-font);
-  font-size: clamp(16px, 3.8vw, 23px);
+  font-size: clamp(18px, 3.8vw, 23px);
   font-weight: 700;
   line-height: 1.45;
   text-align: center;
@@ -822,7 +822,7 @@ bottom: 26%;
 
 .price-label {
   font-family: var(--font-title);
-  font-size: clamp(14px, 2.2vw, 14px);
+  font-size: clamp(16px, 2.2vw, 16px);
   font-weight: 700;
   color: var(--color-pink);
   margin-top: clamp(12px, 3vw, 22px);
@@ -864,7 +864,7 @@ bottom: 26%;
 
 .tax-text {
   font-family: var(--font-title);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-charcoal);
   margin-top: 8px;
@@ -930,7 +930,7 @@ bottom: 26%;
 
 .discount-badge {
   font-family: var(--font-title);
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 500;
   color: var(--color-charcoal);
   background-color: var(--color-pink-light);
@@ -1166,7 +1166,7 @@ bottom: 26%;
   font-size: clamp(14px, 3vw, 16px);
   font-weight: 600;
   color: var(--color-pink);
-  margin: 0 0 10px 0;
+  margin: 0 0 14px 0;
   text-align: center;
   display: flex;
   align-items: center;
@@ -1219,7 +1219,7 @@ bottom: 26%;
   margin-top: 5px;
 }
 .text-up {
-  font-size: 24px;
+  font-size: 22px;
 }
 
 .decor-carousel-dots {
@@ -1275,7 +1275,7 @@ bottom: 26%;
 
 .prompt-text {
   font-family: var(--font-title);
-  font-size: clamp(14px, 3vw, 24px);
+  font-size: clamp(15px, 3vw, 24px);
   font-weight: 600;
   color: var(--color-charcoal);
   /* letter-spacing: 0.05em;
@@ -1440,7 +1440,7 @@ bottom: 26%;
 
 .paid-card-title {
   font-family: var(--font-title);
-  font-size: clamp(14px, 3.5vw, 18px);
+  font-size: clamp(16px, 3.5vw, 20px);
   font-weight: 600;
   color: var(--color-purple);
   margin: 0 0 6px 0;
@@ -1452,7 +1452,7 @@ bottom: 26%;
 }
 
 .paid-card-img-container {
-  height: clamp(100px, 24vw, 120px);
+  height: clamp(140px, 24vw, 140px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1482,7 +1482,7 @@ bottom: 26%;
 
 .paid-card-subtext {
   font-family: var(--font-title);
-  font-size: clamp(11px, 2.5vw, 14px);
+  font-size: clamp(12px, 2.5vw, 16px);
   font-weight: 600;
   color: var(--color-purple);
   margin: 0;
@@ -1568,7 +1568,7 @@ bottom: 26%;
 
 .comb-title-main {
   font-family: var(--font-title);
-  font-size: clamp(50px, 8.5vw, 80px);
+  font-size: clamp(35px, 8.5vw, 80px);
   font-weight: 600;
   color: var(--color-pink);
   line-height: 1.1;
@@ -1581,7 +1581,7 @@ bottom: 26%;
 }
 
 .comb-title-pink {
-  font-size: clamp(50px, 5.5vw, 80px);
+  font-size: clamp(35px, 5.5vw, 80px);
   font-weight: 700;
 }
 
@@ -3342,7 +3342,7 @@ bottom: 26%;
   
 }
     .footer-content-section {
-    font-size: clamp(16px, 1.5vw, 35px);
+    font-size: clamp(12px, 1.5vw, 35px);
   }
     .footer-content-section .footer-bottoles {
         width: 100%;
@@ -3432,7 +3432,7 @@ bottom: 26%;
   }
   .card-sparkle.second {
     right:14%;
-    
+
   }
 
   .card-img-product2 {
@@ -3512,7 +3512,7 @@ bottom: 26%;
   }
 
   .benefit-title-text {
-    font-size: 18px;
+    font-size: 22px;
   }
 
   .benefit-ornament {
@@ -3520,11 +3520,11 @@ bottom: 26%;
   }
 
   .discount-text {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .discount-badge {
-    font-size: 12px;
+    font-size: 16px;
     padding: 3px 10px;
     min-width: 70px;
   }
@@ -3794,7 +3794,7 @@ bottom: 26%;
   }
 
   .discount-row:not(:last-child) {
-    border-bottom: 1.5px dashed #FF457D;
+    border-bottom: 1.5px dotted #FF457D;
   }
 
   /* Paid Decor Option Section PC Overrides */
