@@ -522,8 +522,8 @@ body {
   align-items: center;
   justify-content: center;
 
-  margin: 12px 0;
-  height: 100px;
+  margin: 0 0px 12px;
+  height: 120px;
   width: 100%;
 }
 
@@ -534,7 +534,7 @@ body {
 
 .card-img-product1 {
   width: 100%;
-  max-width: 170px;
+  max-width: 200px;
   height: auto;
 }
 
@@ -1179,7 +1179,7 @@ bottom: 26%;
 }
 
 .decor-card-img-container {
-  height: clamp(80px, 20vw, 110px);
+  height: clamp(150px, 20vw, 170px);
   width: 100%;
   display: flex;
   justify-content: center;
@@ -3415,12 +3415,12 @@ bottom: 26%;
   }
 
   .badge-top {
-    font-size: 10px;
+    font-size: 13px;
   }
 
   .card-media {
-    height: 70px;
-    margin: 8px 0;
+    /* height: 70px; */
+    /* margin: 8px 0; */
   }
 
   .card-img-truck {
@@ -3428,7 +3428,7 @@ bottom: 26%;
   }
 
   .card-img-product1 {
-    max-width: 150px;
+    max-width: 180px;
   }
   .card-sparkle.second {
     right:14%;
@@ -3436,7 +3436,7 @@ bottom: 26%;
   }
 
   .card-img-product2 {
-    max-width: 95px;
+    max-width: 145px;
   }
 
   .card-img-product4 {
