@@ -712,6 +712,28 @@ bottom: 26%;
   cursor: grabbing;
 }
 
+.product-dots-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.product-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #E2CBEA;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  cursor: pointer;
+}
+
+.product-dot.active {
+  background-color: var(--color-pink);
+  transform: scale(1.2);
+}
+
+
 .product-slider-track {
   display: flex;
   transition: transform 0.5s ease-out;
@@ -819,6 +841,21 @@ bottom: 26%;
   background-color: var(--color-white);
   /* letter-spacing: 0.05em; */
 }
+
+.campaign-badge {
+  font-family: var(--font-title);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-pink);
+  background-color: #FFF87B;
+  border: 1px solid #FF9BBE;
+  border-radius: 4px;
+  padding: 3px 8px;
+  margin-top: 10px;
+  display: inline-block;
+  letter-spacing: 0.05em;
+}
+
 
 .price-label {
   font-family: var(--font-title);
@@ -3738,6 +3775,10 @@ bottom: 26%;
   .product-slider-slide .product-card {
     width: 100%;
     margin: 0;
+  }
+
+  .product-dots-container {
+    display: none;
   }
 
   /* Free Decor Option Carousel Desktop Overrides */

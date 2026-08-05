@@ -230,6 +230,21 @@ document.addEventListener('DOMContentLoaded', () => {
     pTrack.insertBefore(lastClone, pTrack.firstChild);
 
     const allSlides = Array.from(pTrack.querySelectorAll('.product-slider-slide'));
+    
+    // Dynamically generate dots based on original slide length
+    const pDotsContainer = document.querySelector('.product-dots-container');
+    if (pDotsContainer) {
+      pDotsContainer.innerHTML = '';
+      for (let i = 0; i < originalLength; i++) {
+        const dot = document.createElement('span');
+        dot.classList.add('product-dot');
+        if (i === 0) dot.classList.add('active');
+        dot.dataset.index = i;
+        pDotsContainer.appendChild(dot);
+      }
+    }
+    const pDots = Array.from(pDotsContainer ? pDotsContainer.querySelectorAll('.product-dot') : []);
+    
     let currentIndex = 1;
     let pAutoPlayTimer = null;
     let pIsDragging = false;
@@ -257,11 +272,20 @@ document.addEventListener('DOMContentLoaded', () => {
       pTrack.style.transform = `translateX(${value}px)`;
     };
 
+    const updateProductDots = () => {
+      if (window.innerWidth >= 768) return;
+      const logicalIndex = (currentIndex - 1 + originalLength) % originalLength;
+      pDots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === logicalIndex);
+      });
+    };
+
     const goToIndex = (index, smooth = true) => {
       if (isTransitioning && smooth) return;
       isTransitioning = smooth;
       currentIndex = index;
       setTranslate(getTrackOffset(currentIndex), smooth);
+      updateProductDots();
     };
 
     pTrack.addEventListener('transitionend', () => {
@@ -273,6 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTranslate(getTrackOffset(currentIndex), false);
       }
       isTransitioning = false;
+      updateProductDots();
     });
 
     const startAutoPlay = () => {
@@ -327,6 +352,25 @@ document.addEventListener('DOMContentLoaded', () => {
       startAutoPlay();
     };
 
+    pDots.forEach((dot, index) => {
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        goToIndex(index + 1);
+        startAutoPlay();
+      });
+    });
+
+    if (pDotsContainer) {
+      pDotsContainer.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+      pDotsContainer.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: true });
+      pDotsContainer.addEventListener('touchend', (e) => e.stopPropagation());
+      pDotsContainer.addEventListener('mousedown', (e) => e.stopPropagation());
+      pDotsContainer.addEventListener('mousemove', (e) => e.stopPropagation());
+      pDotsContainer.addEventListener('mouseup', (e) => e.stopPropagation());
+      pDotsContainer.addEventListener('click', (e) => e.stopPropagation());
+    }
+
+
     pWrapper.addEventListener('touchstart', dragStart, { passive: true });
     pWrapper.addEventListener('touchmove', dragMove, { passive: true });
     pWrapper.addEventListener('touchend', dragEnd);
@@ -344,10 +388,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => {
       updateSlideWidths();
       goToIndex(currentIndex, false);
+      updateProductDots();
     });
 
     updateSlideWidths();
-    setTimeout(() => goToIndex(currentIndex, false), 50);
+    setTimeout(() => {
+      goToIndex(currentIndex, false);
+      updateProductDots();
+    }, 50);
     startAutoPlay();
   }
 
