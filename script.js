@@ -210,37 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- RANDOM STARS GENERATOR ---
   const generateRandomStars = () => {
     // 1. Handle Free Decor cards (Fixed positions in HTML now, so disabled random generation)
-
-    // 2. Handle Paid Decor cards: exactly one star and one heart per card
-    const paidCards = document.querySelectorAll('.paid-card');
-    paidCards.forEach(card => {
-      // Remove any existing dynamic elements first
-      card.querySelectorAll('.paid-card-sparkle, .paid-card-heart').forEach(el => el.remove());
-
-      // Generate exactly one star and one heart
-      const star = document.createElement('span');
-      star.className = 'paid-card-sparkle';
-
-      const heart = document.createElement('span');
-      heart.className = 'paid-card-heart';
-
-      // Place them on opposite sides (one left, one right) randomly
-      const starOnLeft = Math.random() > 0.5;
-      if (starOnLeft) {
-        star.style.left = `${Math.floor(Math.random() * 10) + 5}%`;
-        heart.style.right = `${Math.floor(Math.random() * 10) + 5}%`;
-      } else {
-        star.style.right = `${Math.floor(Math.random() * 10) + 5}%`;
-        heart.style.left = `${Math.floor(Math.random() * 10) + 5}%`;
-      }
-
-      // Random vertical offsets: between 15% and 75% to not cover title or footer
-      star.style.top = `${Math.floor(Math.random() * 55) + 15}%`;
-      heart.style.top = `${Math.floor(Math.random() * 55) + 15}%`;
-
-      card.appendChild(star);
-      card.appendChild(heart);
-    });
+    // 2. Handle Paid Decor cards (Fixed positions in HTML now, so disabled random generation)
   };
 
   // --- PRODUCT SLIDER FUNCTIONALITY ---

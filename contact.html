@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お問い合わせ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Noto+Sans+JP:wght@100..900&family=Noto+Serif+JP:wght@200..900&family=Philosopher:ital,wght@0,400;0,700;1,400;1,700&family=Playwrite+US+Trad:wght@100..400&family=Sacramento&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="contact-page">
+    <div class="contact-container">
+      <h1 class="contact-title">お問い合わせ</h1>
+      
+      <form class="contact-form-wrapper">
+        <div class="contact-form-box">
+          <!-- Row 1 -->
+          <div class="contact-form-row">
+            <div class="contact-label-col">
+              <label class="contact-label">姓</label>
+              <span class="contact-badge required">必須</span>
+            </div>
+            <div class="contact-input-col">
+              <input type="text" name="last_name" class="contact-input" required>
+            </div>
+          </div>
+          
+          <!-- Row 2 -->
+          <div class="contact-form-row">
+            <div class="contact-label-col">
+              <label class="contact-label">名</label>
+              <span class="contact-badge required">必須</span>
+            </div>
+            <div class="contact-input-col">
+              <input type="text" name="first_name" class="contact-input" required>
+            </div>
+          </div>
+          
+          <!-- Row 3 -->
+          <div class="contact-form-row">
+            <div class="contact-label-col">
+              <label class="contact-label">メールアドレス</label>
+              <span class="contact-badge required">必須</span>
+            </div>
+            <div class="contact-input-col">
+              <input type="email" name="email" class="contact-input" required>
+            </div>
+          </div>
+          
+          <!-- Row 4 -->
+          <div class="contact-form-row">
+            <div class="contact-label-col">
+              <label class="contact-label">電話番号</label>
+              <span class="contact-badge required sp-optional">必須</span>
+            </div>
+            <div class="contact-input-col">
+              <input type="tel" name="tel" class="contact-input">
+            </div>
+          </div>
+          
+          <!-- Row 5 -->
+          <div class="contact-form-row">
+            <div class="contact-label-col">
+              <label class="contact-label">お問い合わせ</label>
+              <span class="contact-badge required sp-optional">必須</span>
+            </div>
+            <div class="contact-input-col">
+              <textarea name="message" class="contact-textarea" rows="8"></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="contact-btn-container">
+          <button type="submit" class="contact-submit-btn">送信</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+
+</html>
