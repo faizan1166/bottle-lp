@@ -244,7 +244,7 @@ body {
 
 .warning-text {
   font-family: var(--font-body);
-  font-size: clamp(14px, 2.2vw, 14px);
+  font-size: clamp(11px, 2.2vw, 14px);
   font-weight: 500;
   line-height: 1.6;
   color: #000000;
@@ -3424,11 +3424,15 @@ bottom: 26%;
   }
 
   .card-img-truck {
-    height: 40px;
+    height: 50px;
   }
 
   .card-img-product1 {
-    max-width: 105px;
+    max-width: 150px;
+  }
+  .card-sparkle.second {
+    right:14%;
+    
   }
 
   .card-img-product2 {
@@ -3436,7 +3440,7 @@ bottom: 26%;
   }
 
   .card-img-product4 {
-    height: 50px;
+    height: 60px;
   }
 
   .card-title {
