@@ -131,7 +131,7 @@ body {
 .bottles-container {
   order: 2;
   width: 100%;
-  max-width: 365px;
+  max-width: 290px;
   margin: 0px auto 0 auto;
   position: relative;
   display: flex;
@@ -146,7 +146,7 @@ body {
   display: block;
   filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.08));
   transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-  margin-right: 58px;
+  margin-left: 24px;
 }
 
 .bottles-group-img:hover {
@@ -3353,6 +3353,9 @@ bottom: 26%;
   .hero-info-container {
     padding: 0cap 4vw 10vw 4vw;
   }
+  .hero-info-container {
+    margin-top: -50px;
+  }
 
   .not-show {
     display: block;
@@ -3728,7 +3731,7 @@ bottom: 26%;
 
   .bottles-container {
     width: 48%;
-    max-width: 580px;
+    max-width: 500px;
     margin: 0;
     align-self: flex-end;
   }
@@ -4125,11 +4128,15 @@ bottom: 26%;
 
 @media (max-height: 736px) {
   .bottles-container {
-    max-width: 330px;
+    max-width: 259px;
   }
   .hero-info-container {
   
-  margin-top: -30px;
+  margin-top: -50px;
+}
+.bottles-group-img {
+   
+    margin-left: 24px;
 }
 .badges-row {
   margin-bottom: 16px;
@@ -4137,7 +4144,7 @@ bottom: 26%;
     .warning-text {
         margin-bottom: 10px;
     }
-    .hero-title {
+    /* .hero-title {
       font-size: clamp(26px, 5.5vw, 64px);
-    }
+    } */
 }
