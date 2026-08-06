@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- CAROUSEL FUNCTIONALITY ---
   const track = document.querySelector('.decor-carousel-track');
   const slides = Array.from(document.querySelectorAll('.decor-carousel-slide'));
-  const dots = Array.from(document.querySelectorAll('.decor-dot'));
+  const dots = Array.from(document.querySelectorAll('.decor-carousel-dots .decor-dot'));
   
   if (track && slides.length > 0) {
     const originalSlides = [...slides]; // Keep original order
@@ -109,22 +109,30 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     dots.forEach((dot, index) => {
-      dot.addEventListener('click', () => {
+      dot.addEventListener('click', (event) => {
+        event.stopPropagation();
         goToSlide(index);
         startAutoPlay();
       });
     });
 
     const getPositionX = (event) => {
-      return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+      if (event.pointerType) return event.clientX;
+      if (event.type.includes('mouse')) return event.pageX;
+      return (event.touches && event.touches.length > 0) ? event.touches[0].clientX : event.changedTouches[0].clientX;
     };
 
     const dragStart = (event) => {
       if (isTransitioning || window.innerWidth >= 768) return;
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (event.target.closest('.decor-dot')) return;
       isDragging = true;
       startX = getPositionX(event);
       stopAutoPlay();
       track.style.transition = 'none';
+      if (event.pointerId && event.currentTarget.setPointerCapture) {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
     };
 
     const dragMove = (event) => {
@@ -143,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isDragging || window.innerWidth >= 768) return;
       isDragging = false;
       
-      const endX = event.type.includes('touch') ? event.changedTouches[0].clientX : event.pageX;
+      const endX = event.pointerType ? event.clientX : (event.type.includes('touch') ? event.changedTouches[0].clientX : event.pageX);
       const diff = endX - startX;
       const containerWidth = track.parentElement.offsetWidth;
       
@@ -190,6 +198,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const wrapper = document.querySelector('.decor-carousel-wrapper');
     if (wrapper) {
+      wrapper.addEventListener('pointerdown', dragStart);
+      wrapper.addEventListener('pointermove', dragMove);
+      window.addEventListener('pointerup', dragEnd);
+      window.addEventListener('pointercancel', dragEnd);
+
       wrapper.addEventListener('touchstart', dragStart, { passive: true });
       wrapper.addEventListener('touchmove', dragMove, { passive: true });
       wrapper.addEventListener('touchend', dragEnd);
@@ -313,17 +326,23 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const getPositionX = (event) => {
+      if (event.pointerType) return event.clientX;
       if (event.type.includes('mouse')) return event.pageX;
       return (event.touches && event.touches.length > 0) ? event.touches[0].clientX : event.changedTouches[0].clientX;
     };
 
     const dragStart = (event) => {
       if (isTransitioning) return;
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (event.target.closest('.product-dot')) return;
       pIsDragging = true;
       pStartX = getPositionX(event);
       pStartTranslate = getTrackOffset(currentIndex);
       stopAutoPlay();
       pTrack.style.transition = 'none';
+      if (event.pointerId && event.currentTarget.setPointerCapture) {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
     };
 
     const dragMove = (event) => {
@@ -371,12 +390,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    pWrapper.addEventListener('touchstart', dragStart, { passive: true });
-    pWrapper.addEventListener('touchmove', dragMove, { passive: true });
-    pWrapper.addEventListener('touchend', dragEnd);
-    pWrapper.addEventListener('mousedown', dragStart);
-    pWrapper.addEventListener('mousemove', dragMove);
-    pWrapper.addEventListener('mouseup', dragEnd);
+    pWrapper.addEventListener('pointerdown', dragStart);
+    pWrapper.addEventListener('pointermove', dragMove);
+    window.addEventListener('pointerup', dragEnd);
+    window.addEventListener('pointercancel', dragEnd);
     pWrapper.addEventListener('mouseleave', () => {
       if (pIsDragging) {
         pIsDragging = false;
@@ -481,129 +498,189 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- DESIGN COLLECTION CAROUSEL ---
+  const dcWrapper = document.querySelector('.dc-showcase-wrapper');
   const dcTrack = document.querySelector('.dc-showcase-track');
   const dcItems = Array.from(document.querySelectorAll('.dc-showcase-item'));
   const dcDots = Array.from(document.querySelectorAll('.dc-dot'));
   
-  if (dcTrack && dcItems.length > 0) {
-    let dcCurrentIndex = 1; // Default to center slide (DC-2)
+  if (dcWrapper && dcTrack && dcItems.length > 0) {
+    const originalLength = dcItems.length;
+    
+    // Clone first two and last two slides for seamless looping on PC/Mobile
+    const firstClone1 = dcItems[0].cloneNode(true);
+    const firstClone2 = dcItems[1].cloneNode(true);
+    const lastClone1 = dcItems[originalLength - 1].cloneNode(true);
+    const lastClone2 = dcItems[originalLength - 2].cloneNode(true);
+
+    firstClone1.classList.add('clone');
+    firstClone2.classList.add('clone');
+    lastClone1.classList.add('clone');
+    lastClone2.classList.add('clone');
+
+    // Prepend last two: lastClone2, then lastClone1
+    dcTrack.insertBefore(lastClone1, dcTrack.firstChild);
+    dcTrack.insertBefore(lastClone2, dcTrack.firstChild);
+    
+    // Append first two: firstClone1, then firstClone2
+    dcTrack.appendChild(firstClone1);
+    dcTrack.appendChild(firstClone2);
+
+    const allDCSlides = Array.from(dcTrack.querySelectorAll('.dc-showcase-item'));
+
+    let dcCurrentIndex = 2; // Start at Slide 1 (index 2)
     let dcStartX = 0;
     let dcIsDragging = false;
     let dcCurrentTranslate = 0;
     let dcPrevTranslate = 0;
+    let dcIsTransitioning = false;
+    let dcAutoPlayTimer = null;
+    let transitionTimeout = null;
 
     const getPositionX = (event) => {
-      return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+      if (event.pointerType) return event.clientX;
+      if (event.type.includes('mouse')) return event.pageX;
+      return (event.touches && event.touches.length > 0) ? event.touches[0].clientX : event.changedTouches[0].clientX;
     };
 
-    const updateDCCarousel = (index, smooth = true) => {
-      if (window.innerWidth >= 768) {
-        dcTrack.style.transform = '';
-        return;
-      }
-      
-      dcCurrentIndex = Math.max(0, Math.min(index, dcItems.length - 1));
-      
-      const containerWidth = dcTrack.parentElement.offsetWidth;
-      const itemWidth = dcItems[0].offsetWidth;
-      const gap = 12; // Gap matches CSS
-      
-      // Calculate translation to center the current item
-      const offset = (containerWidth - itemWidth) / 2;
-      const translation = offset - (dcCurrentIndex * (itemWidth + gap));
-      
+    const getSlideWidth = () => allDCSlides[2].getBoundingClientRect().width;
+    const getGapValue = () => window.innerWidth >= 768 ? 24 : 12;
+
+    const getTrackOffset = (index) => {
+      const width = getSlideWidth();
+      const gap = getGapValue();
+      const wrapperWidth = dcWrapper.offsetWidth;
+      const centerOffset = (wrapperWidth - width) / 2;
+      return centerOffset - index * (width + gap);
+    };
+
+    const setTranslate = (value, smooth = true) => {
       dcTrack.style.transition = smooth ? 'transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)' : 'none';
-      dcTrack.style.transform = `translateX(${translation}px)`;
-      dcCurrentTranslate = translation;
-      dcPrevTranslate = translation;
-      
+      dcTrack.style.transform = `translateX(${value}px)`;
+      dcCurrentTranslate = value;
+      dcPrevTranslate = value;
+    };
+
+    const updateDCDots = () => {
+      const logicalIndex = (dcCurrentIndex - 2 + originalLength) % originalLength;
       dcDots.forEach((dot, i) => {
-        dot.classList.toggle('active', i === dcCurrentIndex);
+        dot.classList.toggle('active', i === logicalIndex);
       });
+    };
+
+    const handleTransitionEnd = () => {
+      if (dcCurrentIndex <= 1) {
+        dcCurrentIndex += originalLength;
+        setTranslate(getTrackOffset(dcCurrentIndex), false);
+      } else if (dcCurrentIndex >= originalLength + 2) {
+        dcCurrentIndex -= originalLength;
+        setTranslate(getTrackOffset(dcCurrentIndex), false);
+      }
+      dcIsTransitioning = false;
+      updateDCDots();
+    };
+
+    const goToIndex = (index, smooth = true) => {
+      if (dcIsTransitioning && smooth) return;
+      dcIsTransitioning = smooth;
+      dcCurrentIndex = index;
+      setTranslate(getTrackOffset(dcCurrentIndex), smooth);
+      updateDCDots();
+    };
+
+    const startAutoPlay = () => {
+      stopAutoPlay();
+      dcAutoPlayTimer = setInterval(() => {
+        goToIndex(dcCurrentIndex + 1);
+      }, 4000);
+    };
+
+    const stopAutoPlay = () => {
+      if (dcAutoPlayTimer) {
+        clearInterval(dcAutoPlayTimer);
+        dcAutoPlayTimer = null;
+      }
     };
 
     // Dot click events
     dcDots.forEach((dot, index) => {
-      dot.addEventListener('click', () => {
-        updateDCCarousel(index);
+      dot.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        goToIndex(index + 2);
+        startAutoPlay();
       });
     });
 
     // Touch and mouse drag handlers for swipe
     const dragStart = (event) => {
-      if (window.innerWidth >= 768) return;
+      if (dcIsTransitioning) return;
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (event.target.closest('.dc-dot')) return;
       dcIsDragging = true;
       dcStartX = getPositionX(event);
+      dcPrevTranslate = getTrackOffset(dcCurrentIndex);
+      stopAutoPlay();
       dcTrack.style.transition = 'none';
+      if (event.pointerId && event.currentTarget.setPointerCapture) {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
     };
 
     const dragMove = (event) => {
       if (!dcIsDragging) return;
-      
       const currentX = getPositionX(event);
       const diff = currentX - dcStartX;
-      const translation = dcPrevTranslate + diff;
-      
-      dcTrack.style.transform = `translateX(${translation}px)`;
-      dcCurrentTranslate = translation;
+      setTranslate(dcPrevTranslate + diff, false);
     };
 
-    const dragEnd = () => {
+    const dragEnd = (event) => {
       if (!dcIsDragging) return;
       dcIsDragging = false;
       
-      const containerWidth = dcTrack.parentElement.offsetWidth;
-      const threshold = containerWidth * 0.12;
-      const diff = dcCurrentTranslate - dcPrevTranslate;
+      const width = getSlideWidth();
+      const threshold = width * 0.15;
+      const currentX = getPositionX(event);
+      const diff = currentX - dcStartX;
       
       if (Math.abs(diff) > threshold) {
-        if (diff > 0 && dcCurrentIndex > 0) {
-          updateDCCarousel(dcCurrentIndex - 1);
-        } else if (diff < 0 && dcCurrentIndex < dcItems.length - 1) {
-          updateDCCarousel(dcCurrentIndex + 1);
+        if (diff > 0) {
+          goToIndex(dcCurrentIndex - 1);
         } else {
-          updateDCCarousel(dcCurrentIndex);
+          goToIndex(dcCurrentIndex + 1);
         }
       } else {
-        updateDCCarousel(dcCurrentIndex);
+        goToIndex(dcCurrentIndex);
       }
+      startAutoPlay();
     };
 
-    // Attach event listeners to track parent
-    const dcWrapper = document.querySelector('.dc-showcase-wrapper');
     if (dcWrapper) {
-      dcWrapper.addEventListener('touchstart', dragStart, { passive: true });
-      dcWrapper.addEventListener('touchmove', dragMove, { passive: true });
-      dcWrapper.addEventListener('touchend', dragEnd);
-      
-      dcWrapper.addEventListener('mousedown', dragStart);
-      dcWrapper.addEventListener('mousemove', dragMove);
-      dcWrapper.addEventListener('mouseup', dragEnd);
+      dcWrapper.addEventListener('pointerdown', dragStart);
+      dcWrapper.addEventListener('pointermove', dragMove);
+      window.addEventListener('pointerup', dragEnd);
+      window.addEventListener('pointercancel', dragEnd);
       dcWrapper.addEventListener('mouseleave', () => {
         if (dcIsDragging) {
           dcIsDragging = false;
-          updateDCCarousel(dcCurrentIndex);
+          goToIndex(dcCurrentIndex);
+          startAutoPlay();
         }
       });
     }
 
-    // Initialize position
-    updateDCCarousel(1, false);
+    // Initialize position and autoplay
+    dcTrack.addEventListener('transitionend', handleTransitionEnd);
+    setTimeout(() => {
+      goToIndex(dcCurrentIndex, false);
+      updateDCDots();
+      startAutoPlay();
+    }, 50);
 
     // Handle screen resize
     window.addEventListener('resize', () => {
-      if (window.innerWidth >= 768) {
-        dcTrack.style.transform = '';
-        dcTrack.style.transition = '';
-      } else {
-        updateDCCarousel(dcCurrentIndex, false);
-      }
+      goToIndex(dcCurrentIndex, false);
+      updateDCDots();
     });
-
-    // Make sure layout shifts don't break centering
-    setTimeout(() => {
-      updateDCCarousel(dcCurrentIndex, false);
-    }, 150);
   }
 
   // --- Q&A ACCORDION FUNCTIONALITY ---

@@ -3930,17 +3930,11 @@ bottom: 26%;
   }
 
   .dc-showcase-track {
-    justify-content: center;
     gap: 24px;
-    transform: none !important;
   }
 
   .dc-showcase-item {
     width: calc(33.333% - 16px);
-  }
-
-  .dc-dots-container {
-    display: none;
   }
 
   .dc-grid-container {
