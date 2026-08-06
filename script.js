@@ -1,3 +1,379 @@
+/**
+ * Shared infinite-loop slider engine.
+ *
+ * Centred slide, CSS-transform track, pointer drag, autoplay, pagination dots.
+ * Slides are duplicated on BOTH sides so every index has a pixel-identical twin
+ * one set away — the loop "reset" is an invisible no-op rather than a jump.
+ *
+ * options:
+ *   wrapper      required  overflow-hidden element that clips the track
+ *   track        required  flex row holding the slides
+ *   dots         optional  container the pagination dots are rendered into
+ *   dotClass     optional  class applied to each generated dot
+ *   dotLabel     optional  (i) => aria-label for dot i
+ *   autoplayMs   optional  autoplay interval (0 disables)
+ *   durationMs   optional  slide transition duration
+ *   easing       optional  slide transition easing
+ *   onLayout     optional  (slides, wrapper) => void, run before every measure
+ */
+function createLoopSlider(options) {
+  const wrapper = options.wrapper;
+  const track = options.track;
+  if (!wrapper || !track) return null;
+
+  const originals = Array.from(track.children);
+  const total = originals.length;
+  if (!total) return null;
+
+  const AUTOPLAY_MS = options.autoplayMs === undefined ? 5000 : options.autoplayMs;
+  const DURATION_MS = options.durationMs || 500;
+  const EASING = options.easing || 'cubic-bezier(0.25, 1, 0.5, 1)';
+  const SWIPE_RATIO = 0.15;   // fraction of a slide that commits a move
+  const MAX_STEP = 2;         // slides a single flick may travel
+  const FLICK_MS = 90;        // how far ahead release velocity is projected
+  const onLayout = options.onLayout || null;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+  // ---- build the strip: [tail clones][originals][head clones] ----
+  // CLONES is the buffer on each side. It only has to exceed the widest
+  // on-screen half-window plus the furthest a single flick can throw us, so the
+  // strip at index i and index i ± total always renders identically — that is
+  // what makes the reset invisible.
+  const CLONES = Math.min(total, 6);
+  const cloneOf = (node) => {
+    const copy = node.cloneNode(true);
+    copy.classList.add('clone');
+    copy.setAttribute('aria-hidden', 'true');
+    return copy;
+  };
+  const head = document.createDocumentFragment();
+  originals.slice(total - CLONES).forEach((n) => head.appendChild(cloneOf(n)));
+  track.insertBefore(head, track.firstChild);
+  const tail = document.createDocumentFragment();
+  originals.slice(0, CLONES).forEach((n) => tail.appendChild(cloneOf(n)));
+  track.appendChild(tail);
+
+  const slides = Array.from(track.children);
+  const REAL_START = CLONES;   // index of the first non-clone slide
+
+  // ---- geometry (measured once per layout, never during a drag) ----
+  let centers = [];
+  let viewport = 0;
+  let stride = 1;
+
+  const measure = () => {
+    if (onLayout) onLayout(slides, wrapper);
+    const trackLeft = track.getBoundingClientRect().left;
+    centers = slides.map((slide) => {
+      const rect = slide.getBoundingClientRect();
+      return (rect.left - trackLeft) + rect.width / 2;
+    });
+    viewport = wrapper.clientWidth;
+    stride = centers.length > 1 ? (centers[1] - centers[0]) || 1 : 1;
+  };
+  const offsetFor = (i) => viewport / 2 - centers[i];
+
+  // ---- transform plumbing ----
+  let x = 0;
+  let index = REAL_START;
+  let animating = false;
+  let settleTimer = null;
+  let rafId = 0;
+  let pendingX = 0;
+
+  const setTransition = (on) => {
+    track.style.transition = (on && !reduceMotion.matches)
+      ? `transform ${DURATION_MS}ms ${EASING}`
+      : 'none';
+  };
+  const setX = (value) => {
+    x = value;
+    track.style.transform = `translate3d(${value}px, 0, 0)`;
+  };
+  const jump = (value) => {
+    setTransition(false);
+    setX(value);
+    void track.offsetWidth;   // flush, so the next glide can't animate the snap
+  };
+  const glide = (value) => {
+    setTransition(true);
+    setX(value);
+  };
+  const readTranslate = () => {
+    const value = getComputedStyle(track).transform;
+    if (!value || value === 'none') return x;
+    try {
+      return new DOMMatrixReadOnly(value).m41;
+    } catch (_) {
+      return x;
+    }
+  };
+
+  // ---- dots ----
+  const dotsHost = options.dots || null;
+  const dotClass = options.dotClass || 'loop-dot';
+  let dots = [];
+  if (dotsHost) {
+    dotsHost.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = dotClass;
+      dot.dataset.index = String(i);
+      dot.setAttribute('aria-label', options.dotLabel ? options.dotLabel(i) : `${i + 1}`);
+      dotsHost.appendChild(dot);
+    }
+    dots = Array.from(dotsHost.children);
+  }
+
+  const logicalIndex = () => (((index - REAL_START) % total) + total) % total;
+  const updateDots = () => {
+    const active = logicalIndex();
+    for (let i = 0; i < dots.length; i++) {
+      const on = i === active;
+      dots[i].classList.toggle('active', on);
+      dots[i].setAttribute('aria-current', on ? 'true' : 'false');
+    }
+  };
+
+  // Off-screen slides may start lazy; pull the neighbours in before they show.
+  const ensureLoaded = (i) => {
+    for (let d = -3; d <= 3; d++) {
+      const slide = slides[i + d];
+      if (!slide) continue;
+      const img = slide.querySelector('img[loading="lazy"]');
+      if (img) img.loading = 'eager';
+    }
+  };
+
+  // ---- navigation ----
+  // Because clones flank the originals, snapping back into range lands on a
+  // frame that renders identically — nothing on screen changes.
+  const normalize = () => {
+    let next = index;
+    while (next < REAL_START) next += total;
+    while (next >= REAL_START + total) next -= total;
+    if (next !== index) {
+      index = next;
+      jump(offsetFor(index));
+      ensureLoaded(index);   // the twin's neighbours are different elements
+    }
+  };
+
+  const onSettled = () => {
+    if (settleTimer) {
+      clearTimeout(settleTimer);
+      settleTimer = null;
+    }
+    if (!animating) return;
+    animating = false;
+    normalize();
+  };
+
+  track.addEventListener('transitionend', (event) => {
+    // Ignore anything bubbling up from the slides themselves.
+    if (event.target !== track || event.propertyName !== 'transform') return;
+    onSettled();
+  });
+
+  const goTo = (target, animate = true) => {
+    index = target;
+    updateDots();
+    ensureLoaded(index);
+    if (settleTimer) {
+      clearTimeout(settleTimer);
+      settleTimer = null;
+    }
+    if (!animate || reduceMotion.matches) {
+      animating = false;
+      jump(offsetFor(index));
+      normalize();
+      return;
+    }
+    animating = true;
+    glide(offsetFor(index));
+    // Safety net: transitionend never fires for a zero-distance move, and
+    // background tabs can swallow it entirely. Without this the slider
+    // would latch "mid-transition" forever and stop responding.
+    settleTimer = setTimeout(onSettled, DURATION_MS + 80);
+  };
+
+  // ---- autoplay ----
+  let autoTimer = null;
+  let dragging = false;
+  let tabVisible = !document.hidden;
+  let onScreen = true;
+
+  const stopAutoplay = () => {
+    if (autoTimer) {
+      clearInterval(autoTimer);
+      autoTimer = null;
+    }
+  };
+  const syncAutoplay = () => {
+    stopAutoplay();
+    if (dragging || !tabVisible || !onScreen) return;
+    if (total < 2 || !AUTOPLAY_MS || reduceMotion.matches) return;
+    autoTimer = setInterval(() => goTo(index + 1), AUTOPLAY_MS);
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    tabVisible = !document.hidden;
+    if (tabVisible) goTo(index, false);   // re-sync after a throttled tab
+    syncAutoplay();
+  });
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      onScreen = entries[entries.length - 1].isIntersecting;
+      syncAutoplay();
+    }, { threshold: 0.1 }).observe(wrapper);
+  }
+
+  // ---- pointer drag (mouse, touch and pen through one code path) ----
+  let pointerId = null;
+  let startX = 0;
+  let startY = 0;
+  let startOffset = 0;
+  let lastX = 0;
+  let lastT = 0;
+  let velocity = 0;
+  let axisLocked = false;
+
+  const flushDrag = () => {
+    rafId = 0;
+    if (dragging) setX(pendingX);
+  };
+
+  const onPointerDown = (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if (dotsHost && dotsHost.contains(event.target)) return;
+
+    dragging = true;
+    axisLocked = false;
+    pointerId = event.pointerId;
+    startX = lastX = event.clientX;
+    startY = event.clientY;
+    lastT = event.timeStamp;
+    velocity = 0;
+
+    stopAutoplay();
+    if (settleTimer) {
+      clearTimeout(settleTimer);
+      settleTimer = null;
+    }
+    animating = false;
+
+    // Grab the strip exactly where it is, even mid-transition.
+    startOffset = readTranslate();
+    pendingX = startOffset;
+    setTransition(false);
+    setX(startOffset);
+
+    try {
+      wrapper.setPointerCapture(event.pointerId);
+    } catch (_) { /* not fatal */ }
+  };
+
+  const onPointerMove = (event) => {
+    if (!dragging || event.pointerId !== pointerId) return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+
+    if (!axisLocked) {
+      if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;   // wait for intent
+      if (Math.abs(dy) > Math.abs(dx)) {                  // vertical: hand it back to the page
+        endDrag(event, true);
+        return;
+      }
+      axisLocked = true;
+    }
+
+    const dt = event.timeStamp - lastT;
+    if (dt > 0) velocity = 0.7 * ((event.clientX - lastX) / dt) + 0.3 * velocity;
+    lastX = event.clientX;
+    lastT = event.timeStamp;
+
+    pendingX = startOffset + dx;
+    if (!rafId) rafId = requestAnimationFrame(flushDrag);   // one write per frame
+  };
+
+  const endDrag = (event, abort) => {
+    if (!dragging) return;
+    dragging = false;
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
+    if (pointerId !== null) {
+      try {
+        wrapper.releasePointerCapture(pointerId);
+      } catch (_) { /* not fatal */ }
+    }
+    pointerId = null;
+
+    if (abort || !axisLocked) {
+      goTo(index);          // settle back onto the current slide
+      syncAutoplay();
+      return;
+    }
+
+    const travelled = (startOffset - x) / stride;                     // slides moved, forward positive
+    const flick = clamp((-velocity * FLICK_MS) / stride, -0.9, 0.9);
+    const raw = travelled + flick;
+    let step = Math.round(raw);
+    if (step === 0 && Math.abs(raw) > SWIPE_RATIO) step = Math.sign(raw);
+    step = clamp(step, -MAX_STEP, MAX_STEP);
+
+    goTo(index + step);
+    syncAutoplay();
+  };
+
+  wrapper.addEventListener('pointerdown', onPointerDown);
+  wrapper.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', (event) => endDrag(event, true));
+
+  if (dotsHost) {
+    dotsHost.addEventListener('click', (event) => {
+      const dot = event.target.closest('.' + dotClass);
+      if (!dot) return;
+      const want = Number(dot.dataset.index);
+      let delta = (want - logicalIndex() + total) % total;
+      if (delta > total / 2) delta -= total;   // always take the short way round
+      goTo(index + delta);
+      syncAutoplay();
+    });
+  }
+
+  // ---- layout ----
+  const relayout = () => {
+    measure();
+    jump(offsetFor(index));
+  };
+
+  if ('ResizeObserver' in window) {
+    let resizeRaf = 0;
+    new ResizeObserver(() => {
+      if (resizeRaf) return;
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = 0;
+        relayout();
+      });
+    }).observe(wrapper);
+  } else {
+    window.addEventListener('resize', relayout);
+  }
+
+  relayout();
+  updateDots();
+  ensureLoaded(index);
+  syncAutoplay();
+
+  return { next: () => goTo(index + 1), prev: () => goTo(index - 1), relayout };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // --- CAROUSEL FUNCTIONALITY ---
   const track = document.querySelector('.decor-carousel-track');
@@ -226,195 +602,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Handle Paid Decor cards (Fixed positions in HTML now, so disabled random generation)
   };
 
-  // --- PRODUCT SLIDER FUNCTIONALITY ---
-  const pWrapper = document.querySelector('.product-slider-wrapper');
-  const pTrack = document.querySelector('.product-slider-track');
-  const pSlides = Array.from(document.querySelectorAll('.product-slider-slide'));
-
-  if (pWrapper && pTrack && pSlides.length > 0) {
-    const originalLength = pSlides.length;
-    const firstClone = pSlides[0].cloneNode(true);
-    const lastClone = pSlides[originalLength - 1].cloneNode(true);
-
-    firstClone.classList.add('clone');
-    lastClone.classList.add('clone');
-
-    pTrack.appendChild(firstClone);
-    pTrack.insertBefore(lastClone, pTrack.firstChild);
-
-    const allSlides = Array.from(pTrack.querySelectorAll('.product-slider-slide'));
-    
-    // Dynamically generate dots based on original slide length
-    const pDotsContainer = document.querySelector('.product-dots-container');
-    if (pDotsContainer) {
-      pDotsContainer.innerHTML = '';
-      for (let i = 0; i < originalLength; i++) {
-        const dot = document.createElement('span');
-        dot.classList.add('product-dot');
-        if (i === 0) dot.classList.add('active');
-        dot.dataset.index = i;
-        pDotsContainer.appendChild(dot);
-      }
-    }
-    const pDots = Array.from(pDotsContainer ? pDotsContainer.querySelectorAll('.product-dot') : []);
-    
-    let currentIndex = 1;
-    let pAutoPlayTimer = null;
-    let pIsDragging = false;
-    let pStartX = 0;
-    let pStartTranslate = 0;
-    let isTransitioning = false;
-
-    const getSlideWidth = () => allSlides[1].getBoundingClientRect().width;
-    const getTrackOffset = (index) => {
-      const width = getSlideWidth();
-      const wrapperWidth = pWrapper.offsetWidth;
-      const centerOffset = (wrapperWidth - width) / 2;
-      return centerOffset - index * width;
-    };
-
-    const updateSlideWidths = () => {
-      const width = window.innerWidth >= 768 ? 480 : pWrapper.offsetWidth;
-      allSlides.forEach(slide => {
+  // --- PRODUCT (BOTTLES) SLIDER ---
+  // Slide widths are still driven from JS (the track is width:max-content, so
+  // the slides cannot size themselves off a percentage) — onLayout runs before
+  // every measure so the engine always reads the real geometry.
+  createLoopSlider({
+    wrapper: document.querySelector('.product-slider-wrapper'),
+    track: document.querySelector('.product-slider-track'),
+    dots: document.querySelector('.product-dots-container'),
+    dotClass: 'product-dot',
+    dotLabel: (i) => `商品 ${i + 1}`,
+    autoplayMs: 5000,
+    onLayout: (slides, wrapper) => {
+      const width = window.innerWidth >= 768 ? 480 : wrapper.clientWidth;
+      slides.forEach((slide) => {
         slide.style.width = `${width}px`;
       });
-    };
-
-    const setTranslate = (value, smooth = true) => {
-      pTrack.style.transition = smooth ? 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
-      pTrack.style.transform = `translateX(${value}px)`;
-    };
-
-    const updateProductDots = () => {
-      if (window.innerWidth >= 768) return;
-      const logicalIndex = (currentIndex - 1 + originalLength) % originalLength;
-      pDots.forEach((dot, i) => {
-        dot.classList.toggle('active', i === logicalIndex);
-      });
-    };
-
-    const goToIndex = (index, smooth = true) => {
-      if (isTransitioning && smooth) return;
-      isTransitioning = smooth;
-      currentIndex = index;
-      setTranslate(getTrackOffset(currentIndex), smooth);
-      updateProductDots();
-    };
-
-    pTrack.addEventListener('transitionend', () => {
-      if (currentIndex === 0) {
-        currentIndex = originalLength;
-        setTranslate(getTrackOffset(currentIndex), false);
-      } else if (currentIndex === originalLength + 1) {
-        currentIndex = 1;
-        setTranslate(getTrackOffset(currentIndex), false);
-      }
-      isTransitioning = false;
-      updateProductDots();
-    });
-
-    const startAutoPlay = () => {
-      stopAutoPlay();
-      pAutoPlayTimer = setInterval(() => goToIndex(currentIndex + 1), 5000);
-    };
-
-    const stopAutoPlay = () => {
-      if (pAutoPlayTimer) {
-        clearInterval(pAutoPlayTimer);
-        pAutoPlayTimer = null;
-      }
-    };
-
-    const getPositionX = (event) => {
-      if (event.pointerType) return event.clientX;
-      if (event.type.includes('mouse')) return event.pageX;
-      return (event.touches && event.touches.length > 0) ? event.touches[0].clientX : event.changedTouches[0].clientX;
-    };
-
-    const dragStart = (event) => {
-      if (isTransitioning) return;
-      if (event.pointerType === 'mouse' && event.button !== 0) return;
-      if (event.target.closest('.product-dot')) return;
-      pIsDragging = true;
-      pStartX = getPositionX(event);
-      pStartTranslate = getTrackOffset(currentIndex);
-      stopAutoPlay();
-      pTrack.style.transition = 'none';
-      if (event.pointerId && event.currentTarget.setPointerCapture) {
-        event.currentTarget.setPointerCapture(event.pointerId);
-      }
-    };
-
-    const dragMove = (event) => {
-      if (!pIsDragging) return;
-      const currentX = getPositionX(event);
-      const diff = currentX - pStartX;
-      setTranslate(pStartTranslate + diff, false);
-    };
-
-    const dragEnd = (event) => {
-      if (!pIsDragging) return;
-      pIsDragging = false;
-      const endX = getPositionX(event);
-      const diff = endX - pStartX;
-      const threshold = getSlideWidth() * 0.15;
-
-      if (Math.abs(diff) > threshold) {
-        if (diff > 0) {
-          goToIndex(currentIndex - 1);
-        } else {
-          goToIndex(currentIndex + 1);
-        }
-      } else {
-        goToIndex(currentIndex);
-      }
-      startAutoPlay();
-    };
-
-    pDots.forEach((dot, index) => {
-      dot.addEventListener('click', (e) => {
-        e.stopPropagation();
-        goToIndex(index + 1);
-        startAutoPlay();
-      });
-    });
-
-    if (pDotsContainer) {
-      pDotsContainer.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
-      pDotsContainer.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: true });
-      pDotsContainer.addEventListener('touchend', (e) => e.stopPropagation());
-      pDotsContainer.addEventListener('mousedown', (e) => e.stopPropagation());
-      pDotsContainer.addEventListener('mousemove', (e) => e.stopPropagation());
-      pDotsContainer.addEventListener('mouseup', (e) => e.stopPropagation());
-      pDotsContainer.addEventListener('click', (e) => e.stopPropagation());
-    }
-
-
-    pWrapper.addEventListener('pointerdown', dragStart);
-    pWrapper.addEventListener('pointermove', dragMove);
-    window.addEventListener('pointerup', dragEnd);
-    window.addEventListener('pointercancel', dragEnd);
-    pWrapper.addEventListener('mouseleave', () => {
-      if (pIsDragging) {
-        pIsDragging = false;
-        goToIndex(currentIndex);
-        startAutoPlay();
-      }
-    });
-
-    window.addEventListener('resize', () => {
-      updateSlideWidths();
-      goToIndex(currentIndex, false);
-      updateProductDots();
-    });
-
-    updateSlideWidths();
-    setTimeout(() => {
-      goToIndex(currentIndex, false);
-      updateProductDots();
-    }, 50);
-    startAutoPlay();
-  }
+    },
+  });
 
   generateRandomStars();
 
@@ -497,191 +702,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
-  // --- DESIGN COLLECTION CAROUSEL ---
-  const dcWrapper = document.querySelector('.dc-showcase-wrapper');
-  const dcTrack = document.querySelector('.dc-showcase-track');
-  const dcItems = Array.from(document.querySelectorAll('.dc-showcase-item'));
-  const dcDots = Array.from(document.querySelectorAll('.dc-dot'));
-  
-  if (dcWrapper && dcTrack && dcItems.length > 0) {
-    const originalLength = dcItems.length;
-    
-    // Clone first two and last two slides for seamless looping on PC/Mobile
-    const firstClone1 = dcItems[0].cloneNode(true);
-    const firstClone2 = dcItems[1].cloneNode(true);
-    const lastClone1 = dcItems[originalLength - 1].cloneNode(true);
-    const lastClone2 = dcItems[originalLength - 2].cloneNode(true);
-
-    firstClone1.classList.add('clone');
-    firstClone2.classList.add('clone');
-    lastClone1.classList.add('clone');
-    lastClone2.classList.add('clone');
-
-    // Prepend last two: lastClone2, then lastClone1
-    dcTrack.insertBefore(lastClone1, dcTrack.firstChild);
-    dcTrack.insertBefore(lastClone2, dcTrack.firstChild);
-    
-    // Append first two: firstClone1, then firstClone2
-    dcTrack.appendChild(firstClone1);
-    dcTrack.appendChild(firstClone2);
-
-    const allDCSlides = Array.from(dcTrack.querySelectorAll('.dc-showcase-item'));
-
-    let dcCurrentIndex = 2; // Start at Slide 1 (index 2)
-    let dcStartX = 0;
-    let dcIsDragging = false;
-    let dcCurrentTranslate = 0;
-    let dcPrevTranslate = 0;
-    let dcIsTransitioning = false;
-    let dcAutoPlayTimer = null;
-    let transitionTimeout = null;
-
-    const getPositionX = (event) => {
-      if (event.pointerType) return event.clientX;
-      if (event.type.includes('mouse')) return event.pageX;
-      return (event.touches && event.touches.length > 0) ? event.touches[0].clientX : event.changedTouches[0].clientX;
-    };
-
-    const getSlideWidth = () => allDCSlides[2].getBoundingClientRect().width;
-    const getGapValue = () => window.innerWidth >= 768 ? 24 : 12;
-
-    const getTrackOffset = (index) => {
-      const width = getSlideWidth();
-      const gap = getGapValue();
-      const wrapperWidth = dcWrapper.offsetWidth;
-      const centerOffset = (wrapperWidth - width) / 2;
-      return centerOffset - index * (width + gap);
-    };
-
-    const setTranslate = (value, smooth = true) => {
-      dcTrack.style.transition = smooth ? 'transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)' : 'none';
-      dcTrack.style.transform = `translateX(${value}px)`;
-      dcCurrentTranslate = value;
-      dcPrevTranslate = value;
-    };
-
-    const updateDCDots = () => {
-      const logicalIndex = (dcCurrentIndex - 2 + originalLength) % originalLength;
-      dcDots.forEach((dot, i) => {
-        dot.classList.toggle('active', i === logicalIndex);
-      });
-    };
-
-    const handleTransitionEnd = () => {
-      if (dcCurrentIndex <= 1) {
-        dcCurrentIndex += originalLength;
-        setTranslate(getTrackOffset(dcCurrentIndex), false);
-      } else if (dcCurrentIndex >= originalLength + 2) {
-        dcCurrentIndex -= originalLength;
-        setTranslate(getTrackOffset(dcCurrentIndex), false);
-      }
-      dcIsTransitioning = false;
-      updateDCDots();
-    };
-
-    const goToIndex = (index, smooth = true) => {
-      if (dcIsTransitioning && smooth) return;
-      dcIsTransitioning = smooth;
-      dcCurrentIndex = index;
-      setTranslate(getTrackOffset(dcCurrentIndex), smooth);
-      updateDCDots();
-    };
-
-    const startAutoPlay = () => {
-      stopAutoPlay();
-      dcAutoPlayTimer = setInterval(() => {
-        goToIndex(dcCurrentIndex + 1);
-      }, 4000);
-    };
-
-    const stopAutoPlay = () => {
-      if (dcAutoPlayTimer) {
-        clearInterval(dcAutoPlayTimer);
-        dcAutoPlayTimer = null;
-      }
-    };
-
-    // Dot click events
-    dcDots.forEach((dot, index) => {
-      dot.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        goToIndex(index + 2);
-        startAutoPlay();
-      });
-    });
-
-    // Touch and mouse drag handlers for swipe
-    const dragStart = (event) => {
-      if (dcIsTransitioning) return;
-      if (event.pointerType === 'mouse' && event.button !== 0) return;
-      if (event.target.closest('.dc-dot')) return;
-      dcIsDragging = true;
-      dcStartX = getPositionX(event);
-      dcPrevTranslate = getTrackOffset(dcCurrentIndex);
-      stopAutoPlay();
-      dcTrack.style.transition = 'none';
-      if (event.pointerId && event.currentTarget.setPointerCapture) {
-        event.currentTarget.setPointerCapture(event.pointerId);
-      }
-    };
-
-    const dragMove = (event) => {
-      if (!dcIsDragging) return;
-      const currentX = getPositionX(event);
-      const diff = currentX - dcStartX;
-      setTranslate(dcPrevTranslate + diff, false);
-    };
-
-    const dragEnd = (event) => {
-      if (!dcIsDragging) return;
-      dcIsDragging = false;
-      
-      const width = getSlideWidth();
-      const threshold = width * 0.15;
-      const currentX = getPositionX(event);
-      const diff = currentX - dcStartX;
-      
-      if (Math.abs(diff) > threshold) {
-        if (diff > 0) {
-          goToIndex(dcCurrentIndex - 1);
-        } else {
-          goToIndex(dcCurrentIndex + 1);
-        }
-      } else {
-        goToIndex(dcCurrentIndex);
-      }
-      startAutoPlay();
-    };
-
-    if (dcWrapper) {
-      dcWrapper.addEventListener('pointerdown', dragStart);
-      dcWrapper.addEventListener('pointermove', dragMove);
-      window.addEventListener('pointerup', dragEnd);
-      window.addEventListener('pointercancel', dragEnd);
-      dcWrapper.addEventListener('mouseleave', () => {
-        if (dcIsDragging) {
-          dcIsDragging = false;
-          goToIndex(dcCurrentIndex);
-          startAutoPlay();
-        }
-      });
-    }
-
-    // Initialize position and autoplay
-    dcTrack.addEventListener('transitionend', handleTransitionEnd);
-    setTimeout(() => {
-      goToIndex(dcCurrentIndex, false);
-      updateDCDots();
-      startAutoPlay();
-    }, 50);
-
-    // Handle screen resize
-    window.addEventListener('resize', () => {
-      goToIndex(dcCurrentIndex, false);
-      updateDCDots();
-    });
-  }
+  // --- DESIGN COLLECTION SLIDER ---
+  // Slide widths come from CSS here (80% on mobile, 3-up on desktop), so the
+  // engine needs no layout hook.
+  createLoopSlider({
+    wrapper: document.querySelector('.dc-showcase-wrapper'),
+    track: document.querySelector('.dc-showcase-track'),
+    dots: document.querySelector('.dc-dots-container'),
+    dotClass: 'dc-dot',
+    dotLabel: (i) => `デザイン ${i + 1}`,
+    autoplayMs: 5000,
+  });
 
   // --- Q&A ACCORDION FUNCTIONALITY ---
   const qaItems = document.querySelectorAll('.qa-item');

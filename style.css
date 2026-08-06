@@ -523,7 +523,7 @@ body {
   justify-content: center;
 
   margin: 0 0px 12px;
-  height: 120px;
+  /* height: 120px; */
   width: 100%;
 }
 
@@ -561,7 +561,7 @@ body {
   letter-spacing: 0.1em;
   text-align: center;
   color: var(--color-charcoal);
-  margin-top: auto;
+  /* padding-top: 6px; */
   width: 100%;
 }
 
@@ -615,9 +615,9 @@ bottom: 26%;
 }
 
 .footer-main-text {
-  font-family: var(--font-body);
+  font-family: var(--font-title);
   font-size: 40px;
-  font-weight: 800;
+  font-weight: 900;
   color: var(--color-pink);
   display: flex;
   align-items: center;
@@ -724,6 +724,11 @@ bottom: 26%;
 .product-dot {
   width: 6px;
   height: 6px;
+  padding: 0;
+  border: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 auto;
   border-radius: 50%;
   background-color: #E2CBEA;
   transition: background-color 0.3s ease, transform 0.3s ease;
@@ -1224,7 +1229,7 @@ bottom: 26%;
 }
 
 .decor-card-img-container {
-  height: clamp(140px, 20vw, 140px);
+  /* height: clamp(140px, 20vw, 140px); */
   width: 100%;
   display: flex;
   justify-content: center;
@@ -1497,7 +1502,7 @@ bottom: 26%;
 }
 
 .paid-card-img-container {
-  height: clamp(140px, 24vw, 140px);
+  /* height: clamp(140px, 24vw, 140px); */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1922,6 +1927,11 @@ bottom: 26%;
   width: 100%;
   overflow: hidden;
   cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Let the browser own vertical scrolling, we own the horizontal axis. */
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .dc-showcase-wrapper:active {
@@ -1933,27 +1943,46 @@ bottom: 26%;
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
+  /* Promoted to its own compositor layer so drags/transitions stay at 60fps. */
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .dc-showcase-item {
   flex-shrink: 0;
   width: 80%;
   box-sizing: border-box;
-  transition: transform 0.3s ease;
 }
 
 .dc-showcase-item img {
   width: 100%;
   height: auto;
+  /* Matches the intrinsic 1254x1254 assets — reserves the box before load
+     so the track never reflows (no layout shift, no mid-slide jump). */
+  aspect-ratio: 1 / 1;
   border-radius: 16px;
   box-shadow: 0 4px 15px rgba(241, 132, 147, 0.1);
   display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Respect reduced-motion: no autoplay (handled in JS) and instant snaps. */
+@media (prefers-reduced-motion: reduce) {
+  .dc-showcase-track {
+    transition: none !important;
+  }
 }
 
 /* Dots pagination */
 .dc-dots-container {
   display: flex;
   justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 20px;
 }
@@ -1961,10 +1990,16 @@ bottom: 26%;
 .dc-dot {
   width: 6px;
   height: 6px;
+  padding: 0;
+  border: 0;
+  appearance: none;
+  -webkit-appearance: none;
   border-radius: 50%;
   background-color: #E2CBEA;
   transition: background-color 0.3s ease, transform 0.3s ease;
   cursor: pointer;
+  flex: 0 0 auto;
+  touch-action: manipulation;
 }
 
 .dc-dot.active {
@@ -2821,15 +2856,20 @@ bottom: 26%;
   text-align: center;
   line-height: 1.4;
   font-weight: 600;
+  display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+
 }
 .footer-content-section h2 {
   margin-bottom: 60px;
 }
 .footer-content-section .footer-bottoles {
-  width: 123%;
-  /* max-width: 1000px; */
+  width: 100%;
+  max-width: 800px;
   margin: 0 auto;
-  margin-left: -199px;
+  /* margin-left: -199px; */
   /* height: 1174px; */
 }
 .footer-btn-wrap {
@@ -3313,7 +3353,7 @@ bottom: 26%;
   }
   .footer-content-section .footer-bottoles {
         width: 100%;
-            margin-left:-99px
+            /* margin-left:-99px */
 
   }
    .sp-only {
@@ -3373,6 +3413,18 @@ bottom: 26%;
 
 
 @media (max-width: 580px) {
+  .star-right-decor-footer {
+    position: absolute;
+    top: 40px;
+    right: 14px;
+    height: 24px;
+  }
+  .star-left-decor-footer {
+        position: absolute;
+    top: 39px;
+    left: -16px;
+    height: 24px;
+  }
   .paid-title-left-heart {
     left: 0;
   }
@@ -3394,7 +3446,8 @@ bottom: 26%;
   }
     .footer-content-section .footer-bottoles {
         width: 100%;
-            margin-left:-75px
+            margin-left:30px;
+            max-width: 320px;
 
   }
 
@@ -3580,12 +3633,31 @@ bottom: 26%;
   .voice-author {
     text-align: right;
   }
+  .card-sparkle.fourth {
+  height: 19px;
+      bottom: 22%;
+    right: 14%;
+}
+.card-sparkle.first {
+  top: 68%;
+        right: 11%;
+                height: 19px;
+}
+.card-sparkle 
+{
+  height: 19px;
+}
 }
 
 @media (max-width: 400px) {
   .card-sparkle {
     height: 16px;
   }
+      .footer-main-text
+{
+          font-size: 22px;
+}
+
 }
 
 @media (min-width: 768px) {
@@ -3788,9 +3860,9 @@ bottom: 26%;
     margin: 0;
   }
 
-  .product-dots-container {
+  /* .product-dots-container {
     display: none;
-  }
+  } */
 
   /* Free Decor Option Carousel Desktop Overrides */
   .decor-carousel-wrapper {
