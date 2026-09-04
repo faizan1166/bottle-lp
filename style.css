@@ -1553,8 +1553,322 @@ body {
   display: none;
 }
 
-.show {
+/* ==========================================================================
+   Simulator Section (理想のオリシャンを 簡単シュミレーション♡)
+   ========================================================================== */
+.simulator-section {
+  position: relative;
+  width: 100%;
+  background: linear-gradient(180deg, #FDF4F6 0%, #FFFFFF 25%, #FFF2F5 65%, #FDF4F6 100%);
+  padding: 40px 16px 45px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.sim-pearls-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.sim-pearl {
+  position: absolute;
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(220, 160, 175, 0.18));
+  animation: simPearlFloat 6s ease-in-out infinite alternate;
+}
+
+.sim-pearl-tl {
+  top: 3.5%;
+  left: 3.5%;
+  width: clamp(26px, 4.8vw, 42px);
+  animation-delay: 0s;
+}
+
+.sim-pearl-tr {
+  top: 4.5%;
+  right: 3.5%;
+  width: clamp(28px, 5.2vw, 46px);
+  animation-delay: 1.5s;
+}
+
+.sim-pearl-ml {
+  bottom: 5%;
+  left: 1.5%;
+  width: clamp(30px, 5.5vw, 46px);
+  animation-delay: 0.8s;
+}
+
+.sim-pearl-mr {
+  bottom: 5%;
+  right: 1.5%;
+  width: clamp(32px, 5.8vw, 48px);
+  animation-delay: 2.2s;
+}
+
+.sim-pearl-bl {
+  bottom: 1%;
+  left: 6.5%;
+  width: clamp(34px, 6vw, 52px);
+  animation-delay: 1.2s;
+}
+
+.sim-pearl-br {
+  bottom: 1%;
+  right: 6.5%;
+  width: clamp(34px, 6vw, 52px);
+  animation-delay: 2.8s;
+}
+
+@keyframes simPearlFloat {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  100% {
+    transform: translateY(-8px) rotate(4deg);
+  }
+}
+
+.sim-inner-container {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.sim-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 18px;
+  position: relative;
+  width: 100%;
+}
+
+.sim-top-ornament {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.sim-top-ornament-img {
+  width: clamp(140px, 26vw, 190px);
+  height: auto;
   display: block;
+}
+
+.sim-title-container {
+  position: relative;
+  display: inline-block;
+  padding: 0 42px;
+  box-sizing: border-box;
+}
+
+.sim-title {
+  font-family: var(--font-title);
+  font-size: clamp(24px, 5.2vw, 36px);
+  font-weight: 700;
+  color: #2D2426;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-align: center;
+}
+
+.sim-pink-text {
+  color: #FF3B76;
+}
+
+.sim-pink-heart {
+  color: #FF3B76;
+  font-size: 1.05em;
+  display: inline-block;
+  margin-left: 2px;
+}
+
+.sim-decor-heart-left {
+  position: absolute;
+  left: 2px;
+  top: 52%;
+  transform: translateY(-50%) rotate(-8deg);
+  width: clamp(26px, 5.5vw, 38px);
+  height: auto;
+  pointer-events: none;
+}
+
+.sim-decor-star-right {
+  position: absolute;
+  right: 6px;
+  top: 14%;
+  width: clamp(16px, 3.5vw, 24px);
+  height: auto;
+  pointer-events: none;
+}
+
+.sim-showcase-wrap {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.sim-mockup-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.sim-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 490px;
+  box-sizing: border-box;
+}
+
+.sim-card-item {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(245, 180, 195, 0.25);
+  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease;
+}
+
+.sim-card-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(245, 180, 195, 0.4);
+}
+
+.sim-card-banner-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.sim-cta-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 490px;
+  box-sizing: border-box;
+}
+
+.sim-subnote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  margin-bottom: 12px;
+}
+
+.sim-gift-icon-img {
+  width: 20px;
+  height: auto;
+  display: block;
+}
+
+.sim-subnote-text {
+  font-family: var(--font-title);
+  font-size: clamp(13px, 2.7vw, 15px);
+  font-weight: 600;
+  color: #2D2426;
+  letter-spacing: 0.05em;
+}
+
+.sim-bottom-decor-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.sim-bottom-decor-img {
+  width: clamp(120px, 20vw, 170px);
+  height: auto;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .simulator-section {
+    padding: 70px 20px 80px;
+  }
+
+  .sim-pearl-tl {
+    left: calc(28% - 380px);
+    top: 4%;
+  }
+
+  .sim-pearl-tr {
+    right: calc(28% - 380px);
+    top: 5%;
+  }
+
+  .sim-pearl-ml {
+    left: calc(28% - 400px);
+    top: unset;
+    bottom: 10%;
+  }
+
+  .sim-pearl-mr {
+    right: calc(28% - 400px);
+    top: unset;
+    bottom: 10%;
+  }
+
+  .sim-pearl-bl {
+    left: calc(31% - 390px);
+    bottom: 4%;
+    top: unset;
+  }
+
+  .sim-pearl-br {
+    right: calc(31% - 390px);
+    bottom: 4%;
+    top: unset;
+  }
+
+  .sim-inner-container {
+    max-width: 680px;
+  }
+
+  .sim-showcase-wrap {
+    max-width: 800px;
+    margin: 0 auto 25px;
+  }
+
+  .sim-cards-grid {
+    gap: 16px;
+    max-width: 580px;
+  }
+
+  .sim-cta-container {
+    max-width: 580px;
+  }
 }
 
 /* Combinations Section */
@@ -3687,17 +4001,20 @@ body {
   .card-sparkle {
     height: 19px;
   }
-    .decor-carousel-slide{
+
+  .decor-carousel-slide {
     padding: 0 !important;
   }
+
   .decor-carousel-wrapper {
     padding: 0 !important;
     box-shadow: none;
   }
- .paid-cards-wrapper{
-  padding: 0;
+
+  .paid-cards-wrapper {
+    padding: 0;
     background: transparent;
- }
+  }
 }
 
 @media (max-width: 400px) {
