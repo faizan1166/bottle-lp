@@ -1787,7 +1787,7 @@ body {
 }
 
 .sim-gift-icon-img {
-  width: 20px;
+  width: 24px;
   height: auto;
   display: block;
 }
@@ -1868,6 +1868,10 @@ body {
 
   .sim-cta-container {
     max-width: 580px;
+  }
+
+  .sim-gift-icon-img {
+    width: 35px;
   }
 }
 
