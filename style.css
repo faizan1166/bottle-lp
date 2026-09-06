@@ -1676,47 +1676,85 @@ body {
 .sim-title-container {
   position: relative;
   display: inline-block;
-  padding: 0 42px;
+  padding: 0 clamp(20px, 6vw, 40px);
   box-sizing: border-box;
 }
 
 .sim-title {
-  font-family: var(--font-title);
-  font-size: clamp(24px, 5.2vw, 36px);
+  font-family: "Noto Serif JP", var(--font-title);
+  font-size: clamp(21px, 4.8vw, 34px);
   font-weight: 700;
   color: #2D2426;
-  line-height: 1.35;
-  letter-spacing: 0.08em;
+  line-height: 1.34;
   margin: 0;
   text-align: center;
+}
+
+.sim-title-line {
+  display: block;
+  white-space: nowrap;
+}
+
+.sim-title-line-1 {
+  margin-bottom: 2px;
+}
+
+.sim-title-line-2 {
+  letter-spacing: 0.02em;
+}
+
+/* 強調文字: 「理想」「簡単」を大きめ＆縦長（長体）に */
+.sim-emphasis-word {
+  display: inline-block;
+  font-size: 1.32em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transform: scale(0.95, 1.12);
+  transform-origin: center bottom;
+  vertical-align: -0.06em;
+}
+
+/* 通常文字: 「のオリシャンを」「シュミレーション」を「理想」「簡単」より小さめに */
+.sim-sub-word {
+  display: inline-block;
+  font-size: 0.82em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  vertical-align: 0.02em;
 }
 
 .sim-pink-text {
   color: #FF3B76;
 }
 
+/* ♡マーク: 改行せず、インラインで自然に配置 */
 .sim-pink-heart {
   color: #FF3B76;
-  font-size: 1.05em;
+  font-size: 0.92em;
+  font-weight: normal;
   display: inline-block;
   margin-left: 2px;
+  vertical-align: 0.04em;
+  line-height: 1;
 }
 
+/* 左上の手描き風ハート装飾 */
 .sim-decor-heart-left {
   position: absolute;
-  left: 2px;
-  top: 52%;
-  transform: translateY(-50%) rotate(-8deg);
-  width: clamp(26px, 5.5vw, 38px);
+  left: -2px;
+  top: 18%;
+  transform: translateY(-50%) rotate(-6deg);
+  width: clamp(24px, 5.2vw, 36px);
   height: auto;
   pointer-events: none;
 }
 
+/* 右上のピンクスター装飾 */
 .sim-decor-star-right {
   position: absolute;
-  right: 6px;
-  top: 14%;
-  width: clamp(16px, 3.5vw, 24px);
+  right: 0px;
+  top: 10%;
+  width: clamp(15px, 3.2vw, 22px);
   height: auto;
   pointer-events: none;
 }
