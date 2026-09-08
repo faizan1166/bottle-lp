@@ -1682,12 +1682,16 @@ body {
 
 .sim-title {
   font-family: "Noto Serif JP", var(--font-title);
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 600;
   color: #2D2426;
   line-height: 1.34;
   margin: 0;
   text-align: center;
+}
+
+.sim-title .slightly-big {
+  font-size: 28px;
 }
 
 .sim-title-line {
@@ -1748,31 +1752,150 @@ body {
 .sim-cards-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: clamp(8px, 2.2vw, 14px);
   width: 100%;
   max-width: 490px;
   box-sizing: border-box;
+  margin: 0 auto 0px;
 }
 
 .sim-card-item {
+  background: #FFFFFF;
+  border: 1.5px solid #FFDCE5;
+  border-radius: 12px;
+  padding: 10px 8px 10px;
+  box-shadow: 0 4px 14px rgba(255, 140, 170, 0.12);
   display: flex;
   flex-direction: column;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(245, 180, 195, 0.25);
-  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease;
+  align-items: center;
+  box-sizing: border-box;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .sim-card-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 22px rgba(245, 180, 195, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(255, 120, 160, 0.22);
 }
 
-.sim-card-banner-img {
+.sim-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   width: 100%;
-  height: auto;
-  display: block;
+  padding-bottom: 5px;
+  box-sizing: border-box;
+}
+
+.sim-card-sparkles,
+.sim-card-camera {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sim-card-title {
+  font-family: "Noto Serif JP", var(--font-title);
+  font-size: clamp(11.5px, 2.7vw, 14px);
+  font-weight: 700;
+  color: #2D2426;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.sim-card-accent {
+  color: #FF2B6D;
+  font-weight: 800;
+}
+
+.sim-card-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 4px;
+  margin-bottom: 5px;
+}
+
+.sim-divider-line {
+  flex-grow: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #FFB8CC, #FFB8CC, transparent);
+}
+
+.sim-divider-diamond {
+  font-size: 7px;
+  color: #FF80A0;
+  line-height: 1;
+}
+
+.sim-card-equation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 2px 2px 0;
+  height: 58px;
+  box-sizing: border-box;
+  gap: 2px;
+}
+
+.sim-eq-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sim-eq-wings {
+  width: clamp(34px, 8.5vw, 44px);
+}
+
+.sim-eq-ribbon {
+  width: clamp(28px, 7vw, 36px);
+}
+
+.sim-eq-bottle-res {
+  height: clamp(48px, 11.5vw, 58px);
+}
+
+.sim-eq-photo {
+  width: clamp(32px, 8vw, 42px);
+}
+
+.sim-eq-photo-img {
+  width: 100%;
+  height: clamp(22px, 5.8vw, 29px);
   object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  display: block;
+}
+
+.sim-eq-bottle-outline {
+  height: clamp(46px, 10.5vw, 56px);
+}
+
+.sim-eq-bottle-photo {
+  height: clamp(48px, 11.5vw, 58px);
+}
+
+.sim-eq-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.sim-eq-op {
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: clamp(13px, 3vw, 17px);
+  font-weight: 500;
+  color: #4A3A3D;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .sim-cta-container {
@@ -1782,29 +1905,97 @@ body {
   width: 100%;
   max-width: 490px;
   box-sizing: border-box;
+  margin-top: 4px;
+}
+
+.sim-cta-pill-outer {
+  display: block;
+  width: 100%;
+  /* padding: 3px; */
+  border-radius: 9999px;
+  background: rgba(255, 60, 115, 0.14);
+  border: 1.5px solid rgba(255, 75, 125, 0.35);
+  box-sizing: border-box;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.sim-cta-pill-outer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 45, 95, 0.3);
+  background: rgba(255, 60, 115, 0.22);
+}
+
+.sim-cta-pill-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, #FF3D77 0%, #FF1C5E 100%);
+  border-radius: 9999px;
+  padding: 11px 18px;
+  box-shadow: 0 6px 18px rgba(255, 28, 94, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  box-sizing: border-box;
+}
+
+.sim-cta-line-badge {
+  width: clamp(30px, 7vw, 36px);
+  height: clamp(30px, 7vw, 36px);
+  border-radius: 50%;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.sim-cta-line-icon {
+  width: clamp(20px, 4.8vw, 24px);
+  height: clamp(20px, 4.8vw, 24px);
+  display: block;
+}
+
+.sim-cta-btn-text {
+  font-family: var(--font-body);
+  font-size: clamp(15px, 3.8vw, 19px);
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: 0.04em;
+  text-align: center;
+  flex-grow: 1;
+  text-shadow: 0 1px 3px rgba(180, 10, 60, 0.3);
+  margin: 0 8px;
+  white-space: nowrap;
+}
+
+.sim-cta-btn-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .sim-subnote {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 14px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-top: 12px;
+  margin-bottom: 8px;
 }
 
 .sim-gift-icon-img {
-  width: 24px;
+  width: clamp(16px, 3.5vw, 20px);
   height: auto;
   display: block;
 }
 
 .sim-subnote-text {
-  font-family: var(--font-title);
-  font-size: clamp(13px, 2.7vw, 15px);
+  font-family: "Noto Serif JP", var(--font-title);
+  font-size: clamp(12px, 2.6vw, 14px);
   font-weight: 600;
-  color: #2D2426;
-  letter-spacing: 0.05em;
+  color: #3A2E31;
+  letter-spacing: 0.03em;
 }
 
 .sim-bottom-decor-wrap {
@@ -1815,7 +2006,7 @@ body {
 }
 
 .sim-bottom-decor-img {
-  width: clamp(120px, 20vw, 170px);
+  width: clamp(130px, 24vw, 170px);
   height: auto;
   display: block;
 }
@@ -1826,6 +2017,10 @@ body {
   }
 
   .sim-title {
+    font-size: 36px;
+  }
+
+  .sim-title .slightly-big {
     font-size: 40px;
   }
 
@@ -1875,14 +2070,83 @@ body {
   .sim-cards-grid {
     gap: 16px;
     max-width: 580px;
+    /* margin-bottom: 22px; */
+  }
+
+  .sim-card-item {
+    padding: 14px 12px 14px;
+    border-radius: 14px;
+  }
+
+  .sim-card-title {
+    font-size: 15px;
+  }
+
+  .sim-card-equation {
+    height: 72px;
+    padding: 6px 4px 4px;
+  }
+
+  .sim-eq-wings {
+    width: 56px;
+  }
+
+  .sim-eq-ribbon {
+    width: 44px;
+  }
+
+  .sim-eq-bottle-res {
+    height: 70px;
+  }
+
+  .sim-eq-photo {
+    width: 54px;
+  }
+
+  .sim-eq-photo-img {
+    height: 38px;
+  }
+
+  .sim-eq-bottle-outline {
+    height: 68px;
+  }
+
+  .sim-eq-bottle-photo {
+    height: 70px;
+  }
+
+  .sim-eq-op {
+    font-size: 20px;
   }
 
   .sim-cta-container {
     max-width: 580px;
   }
 
+  .sim-cta-pill-inner {
+    padding: 14px 24px;
+  }
+
+  .sim-cta-btn-text {
+    font-size: 21px;
+  }
+
+  .sim-cta-line-badge {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sim-cta-line-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sim-subnote-text {
+    font-size: 15px;
+  }
+
   .sim-gift-icon-img {
-    width: 35px;
+    width: 22px;
   }
 }
 
@@ -3771,6 +4035,11 @@ body {
 
 
 @media (max-width: 580px) {
+  .flow-cta-icon {
+    width: 26px;
+    height: 26px;
+  }
+
   .star-right-decor-footer {
     position: absolute;
     top: 40px;
