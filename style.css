@@ -1862,12 +1862,12 @@ body {
 }
 
 .sim-eq-photo {
-  width: clamp(38px, 10.4vw, 50px);
+  width: clamp(55px, 10.4vw, 55px);
 }
 
 .sim-eq-photo-img {
   width: 100%;
-  height: clamp(26px, 6.6vw, 36px);
+  /* height: clamp(26px, 6.6vw, 36px); */
   object-fit: cover;
   border-radius: 2px;
   /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); */
@@ -2108,11 +2108,11 @@ body {
   }
 
   .sim-eq-photo {
-    width: 70px;
+    width: 100px;
   }
 
   .sim-eq-photo-img {
-    height: 44px;
+    height: 70px;
   }
 
   .sim-eq-bottle-outline {
