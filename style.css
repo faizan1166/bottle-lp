@@ -1554,13 +1554,13 @@ body {
 }
 
 /* ==========================================================================
-   Simulator Section (理想のオリシャンを 簡単シュミレーション♡)
+   Simulator Section (理想のオリシャンを 簡単シミュレーション♡)
    ========================================================================== */
 .simulator-section {
   position: relative;
   width: 100%;
   background: linear-gradient(180deg, #FDF4F6 0%, #FFFFFF 25%, #FFF2F5 65%, #FDF4F6 100%);
-  padding: 40px 16px 45px;
+  padding: 36px 14px 42px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1655,7 +1655,7 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   position: relative;
   width: 100%;
 }
@@ -1734,8 +1734,8 @@ body {
 
 .sim-showcase-wrap {
   width: 100%;
-  max-width: 520px;
-  margin: 0 auto 20px;
+  max-width: 100%;
+  margin: 4px auto 20px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1744,6 +1744,7 @@ body {
 
 .sim-mockup-img {
   width: 100%;
+  max-width: 100%;
   height: auto;
   display: block;
   object-fit: contain;
@@ -1752,18 +1753,18 @@ body {
 .sim-cards-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(8px, 2.2vw, 14px);
+  gap: clamp(8px, 2.2vw, 12px);
   width: 100%;
-  max-width: 490px;
+  max-width: 520px;
   box-sizing: border-box;
-  margin: 0 auto 0px;
+  margin: 0 auto 16px;
 }
 
 .sim-card-item {
   background: #FFFFFF;
   border: 1.5px solid #FFDCE5;
   border-radius: 12px;
-  padding: 10px 8px 10px;
+  padding: 10px 6px 12px;
   box-shadow: 0 4px 14px rgba(255, 140, 170, 0.12);
   display: flex;
   flex-direction: column;
@@ -1781,9 +1782,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 5px;
   width: 100%;
-  padding-bottom: 5px;
+  padding-bottom: 4px;
   box-sizing: border-box;
 }
 
@@ -1797,7 +1798,7 @@ body {
 
 .sim-card-title {
   font-family: "Noto Serif JP", var(--font-title);
-  font-size: clamp(11.5px, 2.7vw, 14px);
+  font-size: clamp(12.5px, 3.2vw, 15.5px);
   font-weight: 700;
   color: #2D2426;
   white-space: nowrap;
@@ -1815,7 +1816,7 @@ body {
   justify-content: center;
   width: 100%;
   gap: 4px;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .sim-divider-line {
@@ -1833,10 +1834,10 @@ body {
 .sim-card-equation {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-evenly;
   width: 100%;
-  padding: 2px 2px 0;
-  height: 58px;
+  padding: 0 2px;
+  height: clamp(68px, 16vw, 82px);
   box-sizing: border-box;
   gap: 2px;
 }
@@ -1849,24 +1850,24 @@ body {
 }
 
 .sim-eq-wings {
-  width: clamp(34px, 8.5vw, 44px);
+  width: clamp(50px, 9.8vw, 52px);
 }
 
 .sim-eq-ribbon {
-  width: clamp(28px, 7vw, 36px);
+  width: clamp(34px, 8.4vw, 44px);
 }
 
 .sim-eq-bottle-res {
-  height: clamp(48px, 11.5vw, 58px);
+  height: clamp(62px, 15vw, 78px);
 }
 
 .sim-eq-photo {
-  width: clamp(32px, 8vw, 42px);
+  width: clamp(38px, 9.4vw, 50px);
 }
 
 .sim-eq-photo-img {
   width: 100%;
-  height: clamp(22px, 5.8vw, 29px);
+  height: clamp(26px, 6.6vw, 36px);
   object-fit: cover;
   border-radius: 2px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
@@ -1874,11 +1875,11 @@ body {
 }
 
 .sim-eq-bottle-outline {
-  height: clamp(46px, 10.5vw, 56px);
+  height: clamp(60px, 14.5vw, 76px);
 }
 
 .sim-eq-bottle-photo {
-  height: clamp(48px, 11.5vw, 58px);
+  height: clamp(62px, 15vw, 78px);
 }
 
 .sim-eq-img {
@@ -1890,12 +1891,13 @@ body {
 
 .sim-eq-op {
   font-family: "Noto Sans JP", sans-serif;
-  font-size: clamp(13px, 3vw, 17px);
-  font-weight: 500;
+  font-size: clamp(16px, 4.2vw, 22px);
+  font-weight: 700;
   color: #4A3A3D;
   line-height: 1;
   flex-shrink: 0;
   user-select: none;
+  padding: 0 1px;
 }
 
 .sim-cta-container {
@@ -1903,9 +1905,15 @@ body {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 490px;
+  max-width: 520px;
   box-sizing: border-box;
-  margin-top: 4px;
+  margin-top: 0;
+}
+
+.sim-cta-container .flow-cta-wrapper {
+  margin-top: 0;
+  width: 100%;
+  padding: 0;
 }
 
 .sim-cta-pill-outer {
@@ -2059,68 +2067,68 @@ body {
   }
 
   .sim-inner-container {
-    max-width: 680px;
+    max-width: 720px;
   }
 
   .sim-showcase-wrap {
-    max-width: 800px;
-    margin: 0 auto 25px;
+    max-width: 860px;
+    margin: 0 auto 28px;
   }
 
   .sim-cards-grid {
     gap: 16px;
-    max-width: 580px;
-    /* margin-bottom: 22px; */
+    max-width: 620px;
+    margin-bottom: 20px;
   }
 
   .sim-card-item {
-    padding: 14px 12px 14px;
+    padding: 14px 12px 16px;
     border-radius: 14px;
   }
 
   .sim-card-title {
-    font-size: 15px;
+    font-size: 16.5px;
   }
 
   .sim-card-equation {
-    height: 72px;
-    padding: 6px 4px 4px;
+    height: 90px;
+    padding: 4px 6px;
   }
 
   .sim-eq-wings {
-    width: 56px;
+    width: 64px;
   }
 
   .sim-eq-ribbon {
-    width: 44px;
+    width: 52px;
   }
 
   .sim-eq-bottle-res {
-    height: 70px;
+    height: 86px;
   }
 
   .sim-eq-photo {
-    width: 54px;
+    width: 62px;
   }
 
   .sim-eq-photo-img {
-    height: 38px;
+    height: 44px;
   }
 
   .sim-eq-bottle-outline {
-    height: 68px;
+    height: 84px;
   }
 
   .sim-eq-bottle-photo {
-    height: 70px;
+    height: 86px;
   }
 
   .sim-eq-op {
-    font-size: 20px;
+    font-size: 24px;
   }
 
   .sim-cta-container {
-    max-width: 580px;
+    max-width: 620px;
   }
 
   .sim-cta-pill-inner {
