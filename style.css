@@ -1862,7 +1862,7 @@ body {
 }
 
 .sim-eq-photo {
-  width: clamp(38px, 9.4vw, 50px);
+  width: clamp(38px, 10.4vw, 50px);
 }
 
 .sim-eq-photo-img {
@@ -1870,7 +1870,7 @@ body {
   height: clamp(26px, 6.6vw, 36px);
   object-fit: cover;
   border-radius: 2px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15); */
   display: block;
 }
 
@@ -2108,7 +2108,7 @@ body {
   }
 
   .sim-eq-photo {
-    width: 62px;
+    width: 70px;
   }
 
   .sim-eq-photo-img {
