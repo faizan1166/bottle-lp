@@ -1742,12 +1742,98 @@ body {
   position: relative;
 }
 
-.sim-mockup-img {
+/* 3枚構成（左ボトル・スマホ・右ボトル）を幅基準の％で配置し、SP/PC共に同じ比率で拡縮 */
+.sim-showcase-stage {
+  position: relative;
   width: 100%;
-  max-width: 100%;
+  aspect-ratio: 100 / 84;
+}
+
+.sim-showcase-glow {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 10%;
+  bottom: 4%;
+  background: radial-gradient(ellipse at center, rgba(255, 182, 206, 0.45) 0%, rgba(255, 214, 228, 0.25) 45%, rgba(255, 240, 245, 0) 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sim-showcase-bottle,
+.sim-showcase-phone {
+  position: absolute;
   height: auto;
   display: block;
-  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sim-showcase-bottle {
+  top: 5%;
+  width: 39%;
+  z-index: 1;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 10px 14px rgba(255, 110, 155, 0.18));
+}
+
+.sim-showcase-bottle-left {
+  left: -2%;
+  transform: rotate(-7deg);
+}
+
+.sim-showcase-bottle-right {
+  right: -2%;
+  transform: rotate(7deg);
+}
+
+.sim-showcase-phone {
+  top: 1.5%;
+  left: 28%;
+  width: 44%;
+  z-index: 2;
+  filter: drop-shadow(0 14px 22px rgba(70, 30, 50, 0.22));
+}
+
+/* きらきら装飾 */
+.sim-sparkle {
+  position: absolute;
+  z-index: 3;
+  width: var(--size, 4%);
+  aspect-ratio: 1 / 1;
+  background: var(--color, #FF8FB3);
+  -webkit-mask: url("assets-new/sim-sparkle.svg") center / contain no-repeat;
+  mask: url("assets-new/sim-sparkle.svg") center / contain no-repeat;
+  pointer-events: none;
+  animation: simSparkleTwinkle 2.4s ease-in-out infinite alternate;
+}
+
+.sim-sparkle-1 { left: 21%;  top: 2%;   --size: 4%;   --color: #FF8FB3; animation-delay: 0s; }
+.sim-sparkle-2 { left: 2%;   top: 9%;   --size: 3.2%; --color: #C9A4F5; animation-delay: 0.9s; }
+.sim-sparkle-3 { left: 1%;   top: 60%;  --size: 3.6%; --color: #F2BE6B; animation-delay: 1.6s; }
+.sim-sparkle-4 { left: 21%;  top: 91%;  --size: 2.8%; --color: #FF8FB3; animation-delay: 0.5s; }
+.sim-sparkle-5 { right: 21%; top: 1%;   --size: 3.4%; --color: #F2BE6B; animation-delay: 1.2s; }
+.sim-sparkle-6 { right: 2%;  top: 16%;  --size: 4%;   --color: #FF8FB3; animation-delay: 0.3s; }
+.sim-sparkle-7 { right: 0.5%; top: 55%; --size: 3%;   --color: #C9A4F5; animation-delay: 2s; }
+.sim-sparkle-8 { right: 21%; top: 90%;  --size: 3.4%; --color: #F2BE6B; animation-delay: 0.7s; }
+
+@keyframes simSparkleTwinkle {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.78) rotate(0deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1.08) rotate(12deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sim-sparkle {
+    animation: none;
+  }
 }
 
 .sim-cards-grid {
@@ -2071,8 +2157,8 @@ body {
   }
 
   .sim-showcase-wrap {
-    max-width: 860px;
-    margin: 0 auto 28px;
+    max-width: 780px;
+    margin: 8px auto 32px;
   }
 
   .sim-cards-grid {
