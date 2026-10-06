@@ -146,7 +146,8 @@ body {
   display: block;
   filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.08));
   transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-  margin-left: 24px;
+  /* 中央（ピンク）のボトルがコンテナ中央に来るよう、左側リボン分を補正 */
+  margin-left: -4.8%;
 }
 
 .bottles-group-img:hover {
@@ -4110,7 +4111,7 @@ body {
   }
 
   .hero-info-container {
-    margin-top: -50px;
+    margin-top: -35px;
   }
 
   .not-show {
@@ -4950,13 +4951,10 @@ body {
 
   .hero-info-container {
 
-    margin-top: -50px;
+    margin-top: -35px;
   }
 
-  .bottles-group-img {
 
-    margin-left: 24px;
-  }
 
   .badges-row {
     margin-bottom: 16px;
